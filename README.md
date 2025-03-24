@@ -43,7 +43,7 @@ Basenames are a core onchain building block that enables anyone to establish the
 
 | Contract | Address | 
 | -------- | ------- | 
-| Registry | [0x1493b2567056c2181630115660963E13A8E32735](https://basescan.org/address/0xb94704422c2a1e396835a571837aa5ae53285a95) | 
+| Registry | [0x1493b2567056c2181630115660963E13A8E32735](https://sepolia.basescan.org/address/0x1493b2567056c2181630115660963E13A8E32735) | 
 | BaseRegistrar | [0x03c4738ee98ae44591e1a4a4f3cab6641d95dd9a](https://sepolia.basescan.org/address/0xa0c70ec36c010b55e3c434d6c6ebeec50c705794#code) | 
 | RegistrarController | [0x49ae3cc2e3aa768b1e5654f5d3c6002144a59581](https://sepolia.basescan.org/address/0x49ae3cc2e3aa768b1e5654f5d3c6002144a59581) |
 | Launch Price Oracle | [0x2B73408052825e17e0Fe464f92De85e8c7723231](https://sepolia.basescan.org/address/0x2B73408052825e17e0Fe464f92De85e8c7723231) |
