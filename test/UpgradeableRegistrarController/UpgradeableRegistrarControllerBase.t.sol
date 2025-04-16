@@ -48,6 +48,7 @@ contract UpgradeableRegistrarControllerBase is Test {
     string public shortName = "t";
     bytes32 public nameLabel = keccak256(bytes(name));
     bytes32 public shortNameLabel = keccak256(bytes(shortName));
+    uint256 baseCointype = 0x80000000 | 0x00002105;
 
     MockDiscountValidator public validator;
     bytes32 public discountKey = keccak256(bytes("default.discount"));
@@ -106,6 +107,8 @@ contract UpgradeableRegistrarControllerBase is Test {
         virtual
         returns (UpgradeableRegistrarController.RegisterRequest memory)
     {
+        uint256[] memory cointypes = new uint256[](1);
+        cointypes[0] = baseCointype;
         return UpgradeableRegistrarController.RegisterRequest({
             name: name,
             owner: user,
@@ -113,6 +116,7 @@ contract UpgradeableRegistrarControllerBase is Test {
             resolver: address(resolver),
             data: _getDefaultRegisterData(),
             reverseRecord: true,
+            cointypes: cointypes,
             signatureExpiry: 0,
             signature: ""
         });
