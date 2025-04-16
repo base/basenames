@@ -10,7 +10,7 @@ import {StringUtils} from "ens-contracts/ethregistrar/StringUtils.sol";
 import {BASE_ETH_NODE, GRACE_PERIOD} from "src/util/Constants.sol";
 import {BaseRegistrar} from "./BaseRegistrar.sol";
 import {IDiscountValidator} from "./interface/IDiscountValidator.sol";
-import {IL2ReverseResolver} from "./interface/IL2ReverseResolver.sol";
+import {IL2ReverseRegistrar} from "./interface/IL2ReverseRegistrar.sol";
 import {IPriceOracle} from "./interface/IPriceOracle.sol";
 import {L2Resolver} from "./L2Resolver.sol";
 import {IReverseRegistrar} from "./interface/IReverseRegistrar.sol";
@@ -46,6 +46,8 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         bytes[] data;
         /// @dev Bool to decide whether to set this name as the "primary" name for the `owner`.
         bool reverseRecord;
+        /// @dev Array of cointypes for reverse record setting
+        uint256[] cointypes;
         /// @dev Signature expiry
         uint256 signatureExpiry;
         /// @dev Signature payload
@@ -582,7 +584,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         }
 
         if (request.reverseRecord) {
-            _setReverseRecord(request.name, request.resolver, msg.sender, request.signatureExpiry, request.signature);
+            _setReverseRecord(request.name, request.resolver, msg.sender, request.signatureExpiry, request.cointypes, request.signature);
         }
 
         emit NameRegistered(request.name, keccak256(bytes(request.name)), request.owner, expires);
@@ -624,13 +626,14 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         address resolver,
         address owner,
         uint256 expiry,
+        uint256[] memory cointypes,
         bytes memory signature
     ) internal {
         URCStorage storage $ = _getURCStorage();
         // vestigial reverse resolution
         $.reverseRegistrar.setNameForAddr(msg.sender, owner, resolver, string.concat(name, $.rootName));
-        // new reverse resolver
-        IL2ReverseResolver($.reverseResolver).setNameForAddrWithSignature(msg.sender, name, expiry, signature);
+        // new reverse registrar
+        IL2ReverseRegistrar($.reverseResolver).setNameForAddrWithSignature(msg.sender, expiry, name, cointypes, signature);
     }
 
     /// @notice Helper method for updating the `activeDiscounts` enumerable set.
