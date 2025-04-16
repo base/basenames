@@ -79,8 +79,6 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         string rootName;
         /// @notice The address that will receive ETH funds upon `withdraw()` being called.
         address paymentReceiver;
-        /// @notice The timestamp of "go-live". Used for setting at-launch pricing premium.
-        uint256 launchTime;
         /// @notice The address of the legacy registrar controller
         address legacyRegistrarController;
         /// @notice The address of the L2 Reverse Resolver
@@ -299,7 +297,6 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         $.paymentReceiver = paymentReceiver_;
         $.legacyRegistrarController = legacyRegistrarController_;
         $.reverseResolver = reverseResolver_;
-        $.launchTime = RegistrarController(legacyRegistrarController_).launchTime();
     }
 
     /// @notice Allows the `owner` to set discount details for a specified `key`.
@@ -556,21 +553,16 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         emit ETHPaymentProcessed(msg.sender, price);
     }
 
-    /// @notice Helper for deciding whether to include a launch-premium.
+    /// @notice Getter for fetching token expiry.
     ///
-    /// @dev If the token returns a `0` expiry time, it hasn't been registered before. On launch, this will be true for all
-    ///     names. Use the `launchTime` to establish a premium price around the actual launch time.
+    /// @dev If the token returns a `0` expiry time, it hasn't been registered before. 
     ///
     /// @param tokenId The ID of the token to check for expiry.
     ///
-    /// @return expires Returns the expiry + GRACE_PERIOD for previously registered names, else `launchTime`.
+    /// @return expires Returns the expiry + GRACE_PERIOD for previously registered names, else 0.
     function _getExpiry(uint256 tokenId) internal view returns (uint256 expires) {
         URCStorage storage $ = _getURCStorage();
-        expires = $.base.nameExpires(tokenId);
-        if (expires == 0) {
-            return $.launchTime;
-        }
-        return expires + GRACE_PERIOD;
+        return $.base.nameExpires(tokenId) + GRACE_PERIOD;
     }
 
     /// @notice Shared registration logic for both `register()` and `discountedRegister()`.
@@ -656,15 +648,6 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     function withdrawETH() public {
         (bool sent,) = payable(_getURCStorage().paymentReceiver).call{value: (address(this).balance)}("");
         if (!sent) revert TransferFailed();
-    }
-
-    /// @notice Allows the owner to recover ERC20 tokens sent to the contract by mistake.
-    ///
-    /// @param _to The address to send the tokens to.
-    /// @param _token The address of the ERC20 token to recover
-    /// @param _amount The amount of tokens to recover.
-    function recoverFunds(address _token, address _to, uint256 _amount) external onlyOwner {
-        IERC20(_token).safeTransfer(_to, _amount);
     }
 
     function _getURCStorage() private pure returns (URCStorage storage $) {
