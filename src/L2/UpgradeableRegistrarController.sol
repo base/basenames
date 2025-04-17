@@ -16,7 +16,7 @@ import {L2Resolver} from "./L2Resolver.sol";
 import {IReverseRegistrar} from "./interface/IReverseRegistrar.sol";
 import {RegistrarController} from "./RegistrarController.sol";
 
-/// @title Registrar Controller
+/// @title Upgradeable Registrar Controller
 ///
 /// @notice A permissioned controller for managing registering and renewing names against the `base` registrar.
 ///         This contract enables a `discountedRegister` flow which is validated by calling external implementations
@@ -26,7 +26,7 @@ import {RegistrarController} from "./RegistrarController.sol";
 ///         Inspired by the ENS ETHRegistrarController:
 ///         https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/ETHRegistrarController.sol
 ///
-/// @author Coinbase (https://github.com/base-org/usernames)
+/// @author Coinbase (https://github.com/base/basenames)
 contract UpgradeableRegistrarController is OwnableUpgradeable {
     using StringUtils for *;
     using SafeERC20 for IERC20;
