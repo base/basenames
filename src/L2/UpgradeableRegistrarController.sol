@@ -563,8 +563,8 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @return expires Returns the expiry + GRACE_PERIOD for previously registered names, else 0.
     function _getExpiry(uint256 tokenId) internal view returns (uint256 expires) {
-        URCStorage storage $ = _getURCStorage();
-        return $.base.nameExpires(tokenId) + GRACE_PERIOD;
+        expires = _getURCStorage().base.nameExpires(tokenId);
+        return expires == 0 ? 0 : expires + GRACE_PERIOD;
     }
 
     /// @notice Shared registration logic for both `register()` and `discountedRegister()`.
