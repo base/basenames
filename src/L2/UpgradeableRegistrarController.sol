@@ -81,10 +81,10 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         string rootName;
         /// @notice The address that will receive ETH funds upon `withdraw()` being called.
         address paymentReceiver;
-        /// @notice The address of the legacy registrar controller
+        /// @notice The address of the legacy registrar controller.
         address legacyRegistrarController;
-        /// @notice The address of the L2 Reverse Resolver
-        address reverseResolver;
+        /// @notice The address of the L2 Reverse Registrar.
+        address l2ReverseRegistrar;
         /// @notice Each discount is stored against a unique 32-byte identifier, i.e. keccak256("test.discount.validator").
         mapping(bytes32 key => DiscountDetails details) discounts;
         /// @notice Storage for which addresses have already registered with a discount.
@@ -286,7 +286,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         string memory rootName_,
         address paymentReceiver_,
         address legacyRegistrarController_,
-        address reverseResolver_
+        address l2ReverseRegistrar_
     ) public initializer onlyInitializing {
         __Ownable_init(owner_);
 
@@ -298,7 +298,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         $.rootName = rootName_;
         $.paymentReceiver = paymentReceiver_;
         $.legacyRegistrarController = legacyRegistrarController_;
-        $.reverseResolver = reverseResolver_;
+        $.l2ReverseRegistrar = l2ReverseRegistrar_;
     }
 
     /// @notice Allows the `owner` to set discount details for a specified `key`.
@@ -633,7 +633,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         // vestigial reverse resolution
         $.reverseRegistrar.setNameForAddr(msg.sender, owner, resolver, string.concat(name, $.rootName));
         // new reverse registrar
-        IL2ReverseRegistrar($.reverseResolver).setNameForAddrWithSignature(msg.sender, expiry, name, cointypes, signature);
+        IL2ReverseRegistrar($.l2ReverseRegistrar).setNameForAddrWithSignature(msg.sender, expiry, name, cointypes, signature);
     }
 
     /// @notice Helper method for updating the `activeDiscounts` enumerable set.
