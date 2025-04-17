@@ -105,6 +105,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///     keccak256(abi.encode(uint256(keccak256("upgradeable.registrar.controller.storage")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant UPGRADEABLE_REGISTRAR_CONTROLLER_STORAGE_LOCATION =
         0xf52df153eda7a96204b686efee7d70251f4cef9d04988d95cc73d1a93f655200;
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                          ERRORS                            */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -557,7 +558,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
 
     /// @notice Getter for fetching token expiry.
     ///
-    /// @dev If the token returns a `0` expiry time, it hasn't been registered before. 
+    /// @dev If the token returns a `0` expiry time, it hasn't been registered before.
     ///
     /// @param tokenId The ID of the token to check for expiry.
     ///
@@ -584,7 +585,14 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         }
 
         if (request.reverseRecord) {
-            _setReverseRecord(request.name, request.resolver, msg.sender, request.signatureExpiry, request.cointypes, request.signature);
+            _setReverseRecord(
+                request.name,
+                request.resolver,
+                msg.sender,
+                request.signatureExpiry,
+                request.cointypes,
+                request.signature
+            );
         }
 
         emit NameRegistered(request.name, keccak256(bytes(request.name)), request.owner, expires);
@@ -633,7 +641,9 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         // vestigial reverse resolution
         $.reverseRegistrar.setNameForAddr(msg.sender, owner, resolver, string.concat(name, $.rootName));
         // new reverse registrar
-        IL2ReverseRegistrar($.l2ReverseRegistrar).setNameForAddrWithSignature(msg.sender, expiry, name, cointypes, signature);
+        IL2ReverseRegistrar($.l2ReverseRegistrar).setNameForAddrWithSignature(
+            msg.sender, expiry, name, cointypes, signature
+        );
     }
 
     /// @notice Helper method for updating the `activeDiscounts` enumerable set.

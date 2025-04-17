@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-
-contract MockL2ReverseRegistrar { 
+contract MockL2ReverseRegistrar {
     /// @notice Sets the `nameForAddr()` record for the addr provided account using a signature.
     ///
     /// @param addr The address to set the name for.

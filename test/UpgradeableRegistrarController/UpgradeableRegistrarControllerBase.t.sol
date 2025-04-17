@@ -37,7 +37,6 @@ contract UpgradeableRegistrarControllerBase is Test {
     MockRegistrarController public legacyController;
     MockL2ReverseRegistrar public l2ReverseRegistrar;
 
-
     address owner = makeAddr("owner"); // Ownable owner on UpgradeableRegistrarController
     address admin = makeAddr("admin"); // Proxy Admin on TransparentUpgradeableProxy
     address user = makeAddr("user");
@@ -55,7 +54,6 @@ contract UpgradeableRegistrarControllerBase is Test {
     bytes32 public discountKey = keccak256(bytes("default.discount"));
     uint256 discountAmount = 0.1 ether;
     uint256 duration = 365 days;
-
 
     function setUp() public {
         base = new MockBaseRegistrar();
