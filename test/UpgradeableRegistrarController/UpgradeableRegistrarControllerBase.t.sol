@@ -13,11 +13,11 @@ import {UpgradeableRegistrarController} from "src/L2/UpgradeableRegistrarControl
 
 import {MockBaseRegistrar} from "test/mocks/MockBaseRegistrar.sol";
 import {MockDiscountValidator} from "test/mocks/MockDiscountValidator.sol";
+import {MockL2ReverseRegistrar} from "test/mocks/MockL2ReverseRegistrar.sol";
 import {MockNameWrapper} from "test/mocks/MockNameWrapper.sol";
 import {MockPriceOracle} from "test/mocks/MockPriceOracle.sol";
 import {MockPublicResolver} from "test/mocks/MockPublicResolver.sol";
 import {MockReverseRegistrar} from "test/mocks/MockReverseRegistrar.sol";
-import {MockReverseResolver} from "test/mocks/MockReverseResolver.sol";
 import {MockRegistrarController} from "test/mocks/MockRegistrarController.sol";
 import {BASE_ETH_NODE, REVERSE_NODE} from "src/util/Constants.sol";
 import {ERC1967Utils} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Utils.sol";
@@ -35,7 +35,8 @@ contract UpgradeableRegistrarControllerBase is Test {
     Registry public registry;
     MockPublicResolver public resolver;
     MockRegistrarController public legacyController;
-    MockReverseResolver public reverseResolver;
+    MockL2ReverseRegistrar public l2ReverseRegistrar;
+
 
     address owner = makeAddr("owner"); // Ownable owner on UpgradeableRegistrarController
     address admin = makeAddr("admin"); // Proxy Admin on TransparentUpgradeableProxy
@@ -55,8 +56,6 @@ contract UpgradeableRegistrarControllerBase is Test {
     uint256 discountAmount = 0.1 ether;
     uint256 duration = 365 days;
 
-    uint256 deployTime = 1720000000; // July 3, 2024
-    uint256 launchTime = 1720800000; // July 12, 2024
 
     function setUp() public {
         base = new MockBaseRegistrar();
@@ -65,8 +64,8 @@ contract UpgradeableRegistrarControllerBase is Test {
         registry = new Registry(owner);
         resolver = new MockPublicResolver();
         validator = new MockDiscountValidator();
-        legacyController = new MockRegistrarController(launchTime);
-        reverseResolver = new MockReverseResolver();
+        legacyController = new MockRegistrarController(block.timestamp);
+        l2ReverseRegistrar = new MockL2ReverseRegistrar();
 
         _establishNamespace();
 
@@ -80,10 +79,9 @@ contract UpgradeableRegistrarControllerBase is Test {
             rootName,
             payments,
             address(legacyController),
-            address(reverseResolver)
+            address(l2ReverseRegistrar)
         );
 
-        vm.warp(deployTime);
         vm.prank(owner);
         controllerImpl = new UpgradeableRegistrarController();
         proxy = new TransparentUpgradeableProxy(address(controllerImpl), admin, controllerInitData);
