@@ -6,7 +6,7 @@ import {IPriceOracle} from "src/L2/interface/IPriceOracle.sol";
 
 contract RegisterPrice is UpgradeableRegistrarControllerBase {
     function test_returnsRegisterPrice_fromPricingOracle() public view {
-        uint256 retPrice = controller.registerPrice(name, 0);
+        uint256 retPrice = controller.registerPrice(name, duration);
         assertEq(retPrice, prices.DEFAULT_BASE_WEI() + prices.DEFAULT_PREMIUM_WEI());
     }
 
