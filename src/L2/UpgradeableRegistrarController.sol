@@ -278,6 +278,9 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param owner_ The permissioned address initialized as the `owner` in the `Ownable` context.
     /// @param rootNode_ The node for which this registrar manages registrations.
     /// @param rootName_ The name of the root node which this registrar manages.
+    /// @param paymentReceiver_ The address of the fee collector.
+    /// @param legacyRegistrarController_ the address of the RegistrarController contract.
+    /// @param l2ReverseRegistrar_ The address of the ENS-deployed L2 Reverse Registrar.
     function initialize(
         BaseRegistrar base_,
         IPriceOracle prices_,
@@ -454,8 +457,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         view
         returns (uint256 price)
     {
-        URCStorage storage $ = _getURCStorage();
-        DiscountDetails memory discount = $.discounts[discountKey];
+        DiscountDetails memory discount = _getURCStorage().discounts[discountKey];
         price = registerPrice(name, duration);
         price = (price >= discount.discount) ? price - discount.discount : 0;
     }
@@ -629,6 +631,9 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param name The specified name.
     /// @param resolver The resolver to set the reverse record on.
     /// @param owner  The owner of the reverse record.
+    /// @param expiry The signature expiry timestamp.
+    /// @param cointypes The array of cointypes representing networks that are valid for replaying this transaction.
+    /// @param signature The ECDSA signature bytes.
     function _setReverseRecord(
         string memory name,
         address resolver,
