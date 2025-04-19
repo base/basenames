@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {RegistrarControllerBase} from "./RegistrarControllerBase.t.sol";
+import {UpgradeableRegistrarControllerBase} from "./UpgradeableRegistrarControllerBase.t.sol";
 import {IPriceOracle} from "src/L2/interface/IPriceOracle.sol";
 
-contract RegisterPrice is RegistrarControllerBase {
+contract RegisterPrice is UpgradeableRegistrarControllerBase {
     function test_returnsRegisterPrice_fromPricingOracle() public view {
         uint256 retPrice = controller.registerPrice(name, 0);
         assertEq(retPrice, prices.DEFAULT_BASE_WEI() + prices.DEFAULT_PREMIUM_WEI());
