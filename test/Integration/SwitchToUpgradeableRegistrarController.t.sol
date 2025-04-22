@@ -73,15 +73,9 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
         uint256[] memory cointypes = new uint256[](1);
         cointypes[0] = 0x80000000 | 0x00002105;
 
-        console.log("fetching price");
-
         uint256 registerPrice = controller.registerPrice(name, duration);
-
         uint256 expectedPrice = _getBasePrices()[4] * duration;
-
         vm.assertEq(registerPrice, expectedPrice);
-
-        console.log("Fetched Price");
 
         UpgradeableRegistrarController.RegisterRequest memory request = UpgradeableRegistrarController.RegisterRequest({
             name: name,
