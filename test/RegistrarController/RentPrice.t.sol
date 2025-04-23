@@ -8,7 +8,7 @@ contract RentPrice is RegistrarControllerBase {
     function test_returnsPrice_fromPricingOracle() public view {
         IPriceOracle.Price memory retPrices = controller.rentPrice(name, 0);
         assertEq(retPrices.base, prices.DEFAULT_BASE_WEI());
-        assertEq(retPrices.premium, prices.DEFAULT_PREMIUM_WEI());
+        assertEq(retPrices.premium, prices.DEFAULT_PERMIUM_WEI());
     }
 
     function test_returnsPremium_ifTimeIsNearLaunchTime() public {

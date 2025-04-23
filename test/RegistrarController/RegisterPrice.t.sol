@@ -7,7 +7,7 @@ import {IPriceOracle} from "src/L2/interface/IPriceOracle.sol";
 contract RegisterPrice is RegistrarControllerBase {
     function test_returnsRegisterPrice_fromPricingOracle() public view {
         uint256 retPrice = controller.registerPrice(name, 0);
-        assertEq(retPrice, prices.DEFAULT_BASE_WEI() + prices.DEFAULT_PREMIUM_WEI());
+        assertEq(retPrice, prices.DEFAULT_BASE_WEI() + prices.DEFAULT_PERMIUM_WEI());
     }
 
     function test_fuzz_returnsRegisterPrice_fromPricingOracle(uint256 fuzzBase, uint256 fuzzPremium) public {
