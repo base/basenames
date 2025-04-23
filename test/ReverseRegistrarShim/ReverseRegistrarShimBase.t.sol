@@ -4,11 +4,11 @@ pragma solidity ^0.8.23;
 import {Test} from "forge-std/Test.sol";
 import {ReverseRegistrarShim} from "src/L2/ReverseRegistrarShim.sol";
 import {MockReverseRegistrar} from "test/mocks/MockReverseRegistrar.sol";
-import {MockReverseResolver} from "test/mocks/MockReverseResolver.sol";
+import {MockL2ReverseRegistrar} from "test/mocks/MockL2ReverseRegistrar.sol";
 import {MockPublicResolver} from "test/mocks/MockPublicResolver.sol";
 
 contract ReverseRegistrarShimBase is Test {
-    MockReverseResolver revRes;
+    MockL2ReverseRegistrar l2RevReg;
     MockReverseRegistrar revReg;
     MockPublicResolver resolver;
 
@@ -21,12 +21,13 @@ contract ReverseRegistrarShimBase is Test {
 
     uint256 signatureExpiry = 0;
     bytes signature;
+    uint256[] cointypes;
 
     function setUp() external {
-        revRes = new MockReverseResolver();
+        l2RevReg = new MockL2ReverseRegistrar();
         revReg = new MockReverseRegistrar();
         resolver = new MockPublicResolver();
-        shim = new ReverseRegistrarShim(address(revReg), address(revRes), address(resolver));
+        shim = new ReverseRegistrarShim(address(revReg), address(l2RevReg), address(resolver));
 
         userA = makeAddr("userA");
         userB = makeAddr("userB");

@@ -2,27 +2,27 @@
 pragma solidity ^0.8.23;
 
 import {ReverseRegistrarShimBase} from "./ReverseRegistrarShimBase.t.sol";
+import {MockL2ReverseRegistrar} from "test/mocks/MockL2ReverseRegistrar.sol";
 import {MockReverseRegistrar} from "test/mocks/MockReverseRegistrar.sol";
-import {MockReverseResolver} from "test/mocks/MockReverseResolver.sol";
 
 contract SetNameForAddrWithSignature is ReverseRegistrarShimBase {
     function test_setsNameForAddr_onReverseRegistrar() public {
-        vm.prank(userA);
         vm.expectCall(
             address(revReg),
-            abi.encodeWithSelector(MockReverseRegistrar.setNameForAddr.selector, userA, userA, address(resolver), nameA)
+            abi.encodeCall(MockReverseRegistrar.setNameForAddr, (userA, userA, address(resolver), nameA))
         );
-        shim.setNameForAddrWithSignature(userA, nameA, signatureExpiry, signature);
+        vm.prank(userA);
+        shim.setNameForAddrWithSignature(userA, nameA, signatureExpiry, cointypes, signature);
     }
 
-    function test_setsNameForAddr_onReverseResolver() public {
-        vm.prank(userA);
+    function test_setsNameForAddr_onL2ReverseRegistrar() public {
         vm.expectCall(
-            address(revRes),
-            abi.encodeWithSelector(
-                MockReverseResolver.setNameForAddrWithSignature.selector, userA, nameA, signatureExpiry, signature
+            address(l2RevReg),
+            abi.encodeCall(
+                MockL2ReverseRegistrar.setNameForAddrWithSignature, (userA, signatureExpiry, nameA, cointypes, signature)
             )
         );
-        shim.setNameForAddrWithSignature(userA, nameA, signatureExpiry, signature);
+        vm.prank(userA);
+        shim.setNameForAddrWithSignature(userA, nameA, signatureExpiry, cointypes, signature);
     }
 }
