@@ -19,7 +19,8 @@ contract SetNameForAddrWithSignature is ReverseRegistrarShimBase {
         vm.expectCall(
             address(l2RevReg),
             abi.encodeCall(
-                MockL2ReverseRegistrar.setNameForAddrWithSignature, (userA, signatureExpiry, nameA, cointypes, signature)
+                MockL2ReverseRegistrar.setNameForAddrWithSignature,
+                (userA, signatureExpiry, nameA, cointypes, signature)
             )
         );
         vm.prank(userA);
