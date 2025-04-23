@@ -13,7 +13,7 @@ import {UpgradeableRegistrarController} from "src/L2/UpgradeableRegistrarControl
 import {TransparentUpgradeableProxy} from
     "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-import {BASE_ETH_NODE} from "src/util/Constants.sol";
+import {BASE_ETH_NODE, GRACE_PERIOD} from "src/util/Constants.sol";
 
 contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
     UpgradeableRegistrarController public controllerImpl;
@@ -22,6 +22,7 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
     MockL2ReverseRegistrar public l2ReverseRegistrar;
 
     address admin;
+    uint256 duration = 365.25 days;
 
     uint256 constant UPGRADE_TIMESTAMP = 1746057600; // May 1 2025
 
@@ -69,7 +70,6 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
 
     function test_canRegisterANewName() public {
         string memory name = "new-name";
-        uint256 duration = 365.25 days;
         uint256[] memory cointypes = new uint256[](1);
         cointypes[0] = 0x80000000 | 0x00002105;
 
@@ -96,12 +96,21 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
 
     function test_canRenewExistingName() public {
         string memory name = "alice";
-        uint256 duration = 365.25 days;
 
         IPriceOracle.Price memory prices = controller.rentPrice(name, duration);
 
         vm.deal(alice, 1 ether);
         vm.prank(alice);
+        controller.renew{value: prices.base}(name, duration);
+    }
+
+    function test_canRenewNameInGracePeriod() public {
+        string memory name = "alice";
+
+        IPriceOracle.Price memory prices = controller.rentPrice(name, duration);
+
+        vm.deal(alice, 1 ether);
+        vm.warp(LAUNCH_TIME + duration + GRACE_PERIOD - 1);
         controller.renew{value: prices.base}(name, duration);
     }
 }
