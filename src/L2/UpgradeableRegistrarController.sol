@@ -125,7 +125,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param duration The duration that was too short.
     error DurationTooShort(uint256 duration);
 
-    /// @notice Thrown when Multicallable resolver data was specified but not resolver address was provided.
+    /// @notice Thrown when Multicallable resolver data was specified but no resolver address was provided.
     error ResolverRequiredWhenDataSupplied();
 
     /// @notice Thrown when a `discountedRegister` claim tries to access an inactive discount.
@@ -180,7 +180,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param name The name that was registered.
     /// @param label The hashed label of the name.
     /// @param owner The owner of the name that was registered.
-    /// @param expires The date that the registration expires.
+    /// @param expires The date when the registration expires.
     event NameRegistered(string name, bytes32 indexed label, address indexed owner, uint256 expires);
 
     /// @notice Emitted when a name is renewed.
@@ -342,7 +342,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         emit ReverseRegistrarUpdated(address(reverse_));
     }
 
-    /// @notice Allows the `owner` to set the reverse registrar contract.
+    /// @notice Allows the `owner` to set the payment receiver address.
     ///
     /// @dev Emits `PaymentReceiverUpdated` after setting the `paymentReceiver` address.
     ///
@@ -457,9 +457,9 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         view
         returns (uint256 price)
     {
-        DiscountDetails memory discount = _getURCStorage().discounts[discountKey];
+        uint256 discount = _getURCStorage().discounts[discountKey].discount;
         price = registerPrice(name, duration);
-        price = (price >= discount.discount) ? price - discount.discount : 0;
+        price = (price >= discount) ? price - discount : 0;
     }
 
     /// @notice Check which discounts are currently set to `active`.
@@ -550,7 +550,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @dev Emits `ETHPaymentProcessed` after validating the payment.
     ///
-    /// @param price The expected value.
+    /// @param price The required value.
     function _validatePayment(uint256 price) internal {
         if (msg.value < price) {
             revert InsufficientValue();
@@ -578,12 +578,13 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @param request The `RegisterRequest` struct containing the details for the registration.
     function _register(RegisterRequest calldata request) internal {
+        bytes32 labelhash = keccak256(bytes(request.name));
         uint256 expires = _getURCStorage().base.registerWithRecord(
-            uint256(keccak256(bytes(request.name))), request.owner, request.duration, request.resolver, 0
+            uint256(labelhash), request.owner, request.duration, request.resolver, 0
         );
 
         if (request.data.length > 0) {
-            _setRecords(request.resolver, keccak256(bytes(request.name)), request.data);
+            _setRecords(request.resolver, labelhash, request.data);
         }
 
         if (request.reverseRecord) {
@@ -626,7 +627,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         resolver.multicallWithNodeCheck(nodehash, data);
     }
 
-    /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver.
+    /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver`.
     ///
     /// @param name The specified name.
     /// @param resolver The resolver to set the reverse record on.
