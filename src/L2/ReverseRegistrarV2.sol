@@ -28,7 +28,7 @@ contract ReverseRegistrarV2 is Ownable {
     /// @notice The reverse node this registrar manages.
     bytes32 public immutable reverseNode;
 
-    /// @notice The network cointype. 
+    /// @notice The network cointype.
     uint256 public immutable cointype;
 
     /// @notice Permissioned controller contracts.
@@ -103,7 +103,7 @@ contract ReverseRegistrarV2 is Ownable {
     /// @param registry_ The ENS registry, will be stored as `registry`.
     /// @param owner_ The permissioned address initialized as the `owner` in the `Ownable` context.
     /// @param reverseNode_ The network-sepcific reverse node.
-    /// @param cointype_ The network-specific cointype. 
+    /// @param cointype_ The network-specific cointype.
     constructor(ENS registry_, address owner_, bytes32 reverseNode_, uint256 cointype_) {
         _initializeOwner(owner_);
         registry = registry_;
@@ -111,33 +111,32 @@ contract ReverseRegistrarV2 is Ownable {
         cointype = cointype_;
     }
 
-
     /// @notice Allows the owner to back populate the ENSIP-11 forward resolution records for basenames.
     ///
     /// @dev For each node in `nodes` we make a series of checks to make sure that we're
     ///     1. Trying to set data against our L2Resolver contract.
     ///     2. Setting a valid forward resolution address.
     ///     3. Not overwriting an existing value.
-    ///     If any of these checks fails, we skip this node and continue. 
+    ///     If any of these checks fails, we skip this node and continue.
     ///
     /// @param nodes The array of nodes for which records will be set.
     function setBaseForwardAddr(bytes32[] memory nodes) public onlyOwner {
-        for(uint256 i; i < nodes.length; i++) {
+        for (uint256 i; i < nodes.length; i++) {
             bytes32 _node = nodes[i];
 
             // Get the resolver address for the node and check that it is our public resolver.
-            address resolverAddr  = registry.resolver(_node);
-            if (address(resolverAddr) != address(defaultResolver)) { continue; }
+            address resolverAddr = registry.resolver(_node);
+            if (address(resolverAddr) != address(defaultResolver)) continue;
             AddrResolver resolver = AddrResolver(resolverAddr);
 
-            // Get the `addr` record for the node and check validity. 
+            // Get the `addr` record for the node and check validity.
             address resolvedAddr = resolver.addr(_node);
-            if (resolvedAddr == address(0)) { continue; }
+            if (resolvedAddr == address(0)) continue;
 
-            // Check if there is an ENSIP-11 cointype address already set for this node. 
-            if (_bytesToAddress(resolver.addr(_node, cointype)) != address(0)) { continue; } 
-            
-            // Set the ENSIP-11 forward resolution addr. 
+            // Check if there is an ENSIP-11 cointype address already set for this node.
+            if (_bytesToAddress(resolver.addr(_node, cointype)) != address(0)) continue;
+
+            // Set the ENSIP-11 forward resolution addr.
             resolver.setAddr(_node, cointype, _addressToBytes(resolvedAddr));
         }
     }
@@ -265,9 +264,7 @@ contract ReverseRegistrarV2 is Ownable {
         }
     }
 
-    function _bytesToAddress(
-        bytes memory b
-    ) internal pure returns (address payable a) {
+    function _bytesToAddress(bytes memory b) internal pure returns (address payable a) {
         require(b.length == 20);
         assembly {
             a := div(mload(add(b, 32)), exp(256, 12))
