@@ -1,9 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {ENS} from "ens-contracts/registry/ENS.sol";
-import {NameResolver} from "ens-contracts/resolvers/profiles/NameResolver.sol";
 import {AddrResolver} from "ens-contracts/resolvers/profiles/AddrResolver.sol";
+import {ENS} from "ens-contracts/registry/ENS.sol";
+import {IL2ReverseRegistrar} from "src/L2/interface/IL2ReverseRegistrar.sol";
+import {NameResolver} from "ens-contracts/resolvers/profiles/NameResolver.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
 
 import {Sha3} from "src/lib/Sha3.sol";
@@ -28,6 +29,9 @@ contract ReverseRegistrarV2 is Ownable {
     /// @notice The reverse node this registrar manages.
     bytes32 public immutable reverseNode;
 
+    /// @notice The address of the ENS-deployed L2ReverseRegistrar contract.
+    address public immutable l2ReverseRegistrar;
+
     /// @notice The network cointype.
     uint256 public immutable cointype;
 
@@ -35,7 +39,7 @@ contract ReverseRegistrarV2 is Ownable {
     mapping(address controller => bool approved) public controllers;
 
     /// @notice The default resolver for setting Name resolution records.
-    NameResolver public defaultResolver;
+    address public defaultResolver;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                          ERRORS                            */
@@ -63,7 +67,7 @@ contract ReverseRegistrarV2 is Ownable {
     /// @notice Emitted when the default Resolver is changed by the `owner`.
     ///
     /// @param resolver The address of the new Resolver.
-    event DefaultResolverChanged(NameResolver indexed resolver);
+    event DefaultResolverChanged(address indexed resolver);
 
     /// @notice Emitted when a controller address approval status is changed by the `owner`.
     ///
@@ -104,11 +108,35 @@ contract ReverseRegistrarV2 is Ownable {
     /// @param owner_ The permissioned address initialized as the `owner` in the `Ownable` context.
     /// @param reverseNode_ The network-sepcific reverse node.
     /// @param cointype_ The network-specific cointype.
-    constructor(ENS registry_, address owner_, bytes32 reverseNode_, uint256 cointype_) {
+    constructor(ENS registry_, address owner_, bytes32 reverseNode_, address l2ReverseRegistrar_, uint256 cointype_) {
         _initializeOwner(owner_);
         registry = registry_;
         reverseNode = reverseNode_;
+        l2ReverseRegistrar = l2ReverseRegistrar_;
         cointype = cointype_;
+    }
+
+    /// @notice Sets the reverse record `name` for `addr`.
+    ///
+    /// @dev First calls the ENS L2ReverseRegistrar and sets the name-record for the provided address. Then follows the legacy
+    ///     Basenames reverse registrar flow.
+    ///
+    /// @param addr The name records will be set for this address.
+    /// @param name The name that will be stored for `addr`.
+    /// @param signatureExpiry The timestamp expiration of the signature.
+    /// @param cointypes The array of networks-as-cointypes used in replayable reverse sets.
+    /// @param signature The signature bytes.
+    function setNameForAddrWithSignature(
+        address addr,
+        string calldata name,
+        uint256 signatureExpiry,
+        uint256[] memory cointypes,
+        bytes memory signature
+    ) external returns (bytes32) {
+        IL2ReverseRegistrar(l2ReverseRegistrar).setNameForAddrWithSignature(
+            addr, signatureExpiry, name, cointypes, signature
+        );
+        return setNameForAddr(addr, msg.sender, defaultResolver, name);
     }
 
     /// @notice Allows the owner to back populate the ENSIP-11 forward resolution records for basenames.
@@ -126,7 +154,7 @@ contract ReverseRegistrarV2 is Ownable {
 
             // Get the resolver address for the node and check that it is our public resolver.
             address resolverAddr = registry.resolver(_node);
-            if (address(resolverAddr) != address(defaultResolver)) continue;
+            if (resolverAddr != defaultResolver) continue;
             AddrResolver resolver = AddrResolver(resolverAddr);
 
             // Get the `addr` record for the node and check validity.
@@ -149,7 +177,7 @@ contract ReverseRegistrarV2 is Ownable {
     /// @param resolver The address of the new resolver.
     function setDefaultResolver(address resolver) public onlyOwner {
         if (address(resolver) == address(0)) revert NoZeroAddress();
-        defaultResolver = NameResolver(resolver);
+        defaultResolver = resolver;
         registry.setResolver(reverseNode, resolver);
         emit DefaultResolverChanged(defaultResolver);
     }
@@ -170,7 +198,7 @@ contract ReverseRegistrarV2 is Ownable {
     ///
     /// @return The ENS node hash of the base-specific reverse record.
     function claim(address owner) public returns (bytes32) {
-        return claimForBaseAddr(msg.sender, owner, address(defaultResolver));
+        return claimForBaseAddr(msg.sender, owner, defaultResolver);
     }
 
     /// @notice Transfers ownership of the base-specific reverse ENS record for `addr` to the provided `owner`.
