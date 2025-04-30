@@ -13,7 +13,7 @@ contract SetNameForAddrWithSignature is ReverseRegistrarV2Base {
         uint256[] memory cointypes = new uint256[](1);
         cointypes[0] = BASE_COINTYPE;
         bytes memory signature = "";
-        uint256 expiry = block.timestamp + 5 minutes; 
+        uint256 expiry = block.timestamp + 5 minutes;
 
         vm.prank(owner);
         reverse.setDefaultResolver(address(resolver));
@@ -24,8 +24,7 @@ contract SetNameForAddrWithSignature is ReverseRegistrarV2Base {
         vm.expectCall(
             address(l2ReverseRegistrar),
             abi.encodeCall(
-                MockL2ReverseRegistrar.setNameForAddrWithSignature,
-                (user, expiry, name, cointypes, signature)
+                MockL2ReverseRegistrar.setNameForAddrWithSignature, (user, expiry, name, cointypes, signature)
             )
         );
         vm.prank(user);

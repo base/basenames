@@ -7,7 +7,6 @@ import {Sha3} from "src/lib/Sha3.sol";
 import {BASE_REVERSE_NODE} from "src/util/Constants.sol";
 
 contract SetName is ReverseRegistrarV2Base {
-
     function test_setsName() public {
         bytes32 labelHash = Sha3.hexAddress(user);
         bytes32 baseReverseNode = keccak256(abi.encodePacked(BASE_REVERSE_NODE, labelHash));
