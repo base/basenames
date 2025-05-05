@@ -293,19 +293,6 @@ contract ReverseRegistrarV2 is Ownable {
         }
     }
 
-    /// @notice Helper for converting an address stored as bytes into an address type.
-    ///
-    /// @dev Copied from ENS `AddrResolver`:
-    ///     https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/profiles/AddrResolver.sol
-    ///
-    /// @param b Address bytes.
-    function _bytesToAddress(bytes memory b) internal pure returns (address payable a) {
-        require(b.length == 20);
-        assembly {
-            a := div(mload(add(b, 32)), exp(256, 12))
-        }
-    }
-
     /// @notice Helper for converting an address into a bytes object.
     ///
     /// @dev Copied from ENS `AddrResolver`:
