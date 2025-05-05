@@ -163,7 +163,7 @@ contract ReverseRegistrarV2 is Ownable {
             if (resolvedAddr == address(0)) continue;
 
             // Check if there is an ENSIP-11 cointype address already set for this node.
-            if (_bytesToAddress(resolver.addr(_node, cointype)) != address(0)) continue;
+            if (resolver.addr(_node, cointype).length != 0) continue;
 
             // Set the ENSIP-11 forward resolution addr.
             resolver.setAddr(_node, cointype, _addressToBytes(resolvedAddr));
