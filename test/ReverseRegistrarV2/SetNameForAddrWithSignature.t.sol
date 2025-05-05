@@ -29,7 +29,7 @@ contract SetNameForAddrWithSignature is ReverseRegistrarV2Base {
         );
         vm.prank(user);
 
-        bytes32 revNode = reverse.setNameForAddrWithSignature(user, name, expiry, cointypes, signature);
+        bytes32 revNode = reverse.setNameForAddrWithSignature(user, expiry, name, cointypes, signature);
         assertEq(revNode, baseReverseNode);
     }
 }

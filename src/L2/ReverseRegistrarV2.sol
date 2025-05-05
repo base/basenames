@@ -119,17 +119,18 @@ contract ReverseRegistrarV2 is Ownable {
     /// @notice Sets the reverse record `name` for `addr`.
     ///
     /// @dev First calls the ENS L2ReverseRegistrar and sets the name-record for the provided address. Then follows the legacy
-    ///     Basenames reverse registrar flow.
+    ///     Basenames reverse registrar flow. The call to the L2ReverseRegistrar will revert if the signature is invalid or
+    ///     if the signature is expired.
     ///
     /// @param addr The name records will be set for this address.
-    /// @param name The name that will be stored for `addr`.
     /// @param signatureExpiry The timestamp expiration of the signature.
+    /// @param name The name that will be stored for `addr`.
     /// @param cointypes The array of networks-as-cointypes used in replayable reverse sets.
     /// @param signature The signature bytes.
     function setNameForAddrWithSignature(
         address addr,
-        string calldata name,
         uint256 signatureExpiry,
+        string calldata name,
         uint256[] memory cointypes,
         bytes memory signature
     ) external returns (bytes32) {
