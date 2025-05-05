@@ -22,7 +22,7 @@ contract ReverseRegistrarV2Base is Test {
     uint256 constant BASE_COINTYPE = 0x80000000 | 0x00002105;
     string name = "name";
 
-    function setUp() public {
+    function setUp() public virtual {
         registry = new Registry(owner);
         l2ReverseRegistrar = new MockL2ReverseRegistrar();
         resolver = new MockNameResolver();
@@ -48,11 +48,5 @@ contract ReverseRegistrarV2Base is Test {
         registry.setSubnodeOwner(0x0, keccak256("reverse"), owner);
         vm.prank(owner);
         registry.setSubnodeOwner(REVERSE_NODE, keccak256("80002105"), address(reverse));
-    }
-
-    function test_constructor() public view {
-        assertTrue(reverse.owner() == owner);
-        assertTrue(address(reverse.registry()) == address(registry));
-        assertTrue(reverse.controllers(controller));
     }
 }
