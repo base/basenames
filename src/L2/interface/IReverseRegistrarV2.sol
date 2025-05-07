@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-
-/// @title Interface for ReverseRegistrarV2 
+/// @title Interface for ReverseRegistrarV2
 interface IReverseRegistrarV2 {
     /// @notice Transfers ownership of the base-specific reverse ENS record for `msg.sender` to the provided `owner`.
     ///
