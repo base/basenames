@@ -2,6 +2,7 @@
 pragma solidity ^0.8.4;
 
 /// @notice Interface for the L2 Reverse Registrar.
+///     https://github.com/ensdomains/ens-contracts/pull/265
 interface IL2ReverseRegistrar {
     /// @notice Sets the `nameForAddr()` record for the calling account.
     ///
@@ -17,9 +18,9 @@ interface IL2ReverseRegistrar {
     /// @notice Sets the `nameForAddr()` record for the addr provided account using a signature.
     ///
     /// @param addr The address to set the name for.
+    /// @param signatureExpiry Date when the signature expires.
     /// @param name The name to set.
     /// @param coinTypes The coin types to set. Must be inclusive of the coin type for the contract.
-    /// @param signatureExpiry Date when the signature expires.
     /// @param signature The signature from the addr.
     function setNameForAddrWithSignature(
         address addr,

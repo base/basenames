@@ -19,7 +19,7 @@ Basenames are a core onchain building block that enables anyone to establish the
 
 | Contract | Address | 
 | -------- | ------- |
-| L1Resolver | [0xde9049636F4a1dfE0a64d1bFe3155C0A14C54F31](https://etherscan.io/address/0xde9049636F4a1dfE0a64d1bFe3155C0A14C54F31#code) |
+| L1Resolver | [0xde9049636F4a1dfE0a64d1bFe3155C0A14C54F31](https://etherscan.io/address/0xde9049636F4a1dfE0a64d1bFe3155C0A14C54F31) |
 
 #### Base Mainnet
 
@@ -43,11 +43,11 @@ Basenames are a core onchain building block that enables anyone to establish the
 
 | Contract | Address | 
 | -------- | ------- | 
-| Registry | [0x1493b2567056c2181630115660963E13A8E32735](https://basescan.org/address/0xb94704422c2a1e396835a571837aa5ae53285a95) | 
-| BaseRegistrar | [0x03c4738ee98ae44591e1a4a4f3cab6641d95dd9a](https://sepolia.basescan.org/address/0xa0c70ec36c010b55e3c434d6c6ebeec50c705794#code) | 
+| Registry | [0x1493b2567056c2181630115660963E13A8E32735](https://sepolia.basescan.org/address/0x1493b2567056c2181630115660963E13A8E32735) | 
+| BaseRegistrar | [0xa0c70ec36c010b55e3c434d6c6ebeec50c705794](https://sepolia.basescan.org/address/0xa0c70ec36c010b55e3c434d6c6ebeec50c705794) | 
 | RegistrarController | [0x49ae3cc2e3aa768b1e5654f5d3c6002144a59581](https://sepolia.basescan.org/address/0x49ae3cc2e3aa768b1e5654f5d3c6002144a59581) |
-| Launch Price Oracle | [0x2B73408052825e17e0Fe464f92De85e8c7723231](https://sepolia.basescan.org/address/0x2B73408052825e17e0Fe464f92De85e8c7723231) |
-| Price Oracle | NOT YET DEPLOYED | 
+| Launch Price Oracle | [0x2afF926546f5fbe3E10315CC9C0827AF1A167aC8](https://sepolia.basescan.org/address/0x2afF926546f5fbe3E10315CC9C0827AF1A167aC8) |
+| Price Oracle | [0x2b73408052825e17e0fe464f92de85e8c7723231](https://sepolia.basescan.org/address/0x2b73408052825e17e0fe464f92de85e8c7723231) | 
 | ReverseRegistrar | [0xa0A8401ECF248a9375a0a71C4dedc263dA18dCd7](https://sepolia.basescan.org/address/0xa0A8401ECF248a9375a0a71C4dedc263dA18dCd7) | 
 | L2Resolver | [0x6533C94869D28fAA8dF77cc63f9e2b2D6Cf77eBA](https://sepolia.basescan.org/address/0x6533C94869D28fAA8dF77cc63f9e2b2D6Cf77eBA) | 
 
@@ -66,14 +66,14 @@ The core functionality of Base Usernames should look familiar to anyone that's l
 
 | Contract | Role | ENS Implementation | Base Usernames Implementation |
 | -------- | ----- | ------------------ | ----------------------------- | 
-|[Registry](https://docs.ens.domains/registry/ens)  | Stores [Records](https://github.com/base-org/usernames/blob/c29119fd327b61f896440c317f3dd898e9fa570b/contracts/src/L2/Registry.sol#L7-L11) of subdomains in a flat structure |  [ENSRegistry.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/registry/ENSRegistry.sol) | [Registry.sol](https://github.com/base-org/basenames/blob/main/src/L2/Registry.sol) |
-| [BaseRegistrar](https://docs.ens.domains/registry/eth) | Tokenizes names,  manages ownership and stores expiry | [BaseRegistrarImplementation.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/BaseRegistrarImplementation.sol) | [BaseRegistrar.sol](https://github.com/base-org/basenames/blob/main/src/L2/BaseRegistrar.sol) | 
-| [ReverseRegistrar](https://docs.ens.domains/registry/reverse) | Manages the reverse lookup to allow the setting of "primary" names for an address | [ReverseRegistrar.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/reverseRegistrar/ReverseRegistrar.sol) | [ReverseRegistrar.sol](https://github.com/base-org/basenames/blob/main/src/L2/ReverseRegistrar.sol) |
-| [L1 Resolver](https://docs.ens.domains/resolvers/ccip-read) | Enables cross-chain, wildcard resolution from L1 | [OffchainResolver.sol](https://github.com/ensdomains/offchain-resolver/blob/main/packages/contracts/contracts/OffchainResolver.sol) | [L1Resolver.sol](https://github.com/base-org/basenames/blob/main/src/L1/L1Resolver.sol) | 
-| [L2 Resolver](https://docs.ens.domains/resolvers/public) | A standard public resolver for storing records associated with namespaces | [PublicResolver.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/PublicResolver.sol) | [L2Resolver.sol](https://github.com/base-org/usernames/blob/master/contracts/src/L2/L2Resolver.sol) | 
-| Registrar Controller | A permissioned contract which manages registration payment | [ETHRegistrarController.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/ETHRegistrarController.sol) | [RegistrarController.sol](https://github.com/base-org/usernames/blob/master/contracts/src/L2/RegistrarController.sol) |
-| Stable Price Oracle | The source of pricing based on name length and duration of registration | [StablePriceOracle.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/StablePriceOracle.sol) | [StablePriceOracle.sol](https://github.com/base-org/usernames/blob/master/contracts/src/L2/StablePriceOracle.sol) |
-| Exponential Premium Oracle | A Dutch auction pricing mechanism for fairly pricing names after expiry | [ExponentialPremiumPricingOracle.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/ExponentialPremiumPriceOracle.sol) | [ExponentialPremiumPricingOracle.sol](https://github.com/base-org/usernames/blob/master/contracts/src/L2/ExponentialPremiumPriceOracle.sol) | 
+|[Registry](https://docs.ens.domains/registry/ens)  | Stores [Records](https://github.com/base/basenames/blob/c29119fd327b61f896440c317f3dd898e9fa570b/contracts/src/L2/Registry.sol#L7-L11) of subdomains in a flat structure |  [ENSRegistry.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/registry/ENSRegistry.sol) | [Registry.sol](https://github.com/base/basenames/blob/main/src/L2/Registry.sol) |
+| [BaseRegistrar](https://docs.ens.domains/registry/eth) | Tokenizes names,  manages ownership and stores expiry | [BaseRegistrarImplementation.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/BaseRegistrarImplementation.sol) | [BaseRegistrar.sol](https://github.com/base/basenames/blob/main/src/L2/BaseRegistrar.sol) | 
+| [ReverseRegistrar](https://docs.ens.domains/registry/reverse) | Manages the reverse lookup to allow the setting of "primary" names for an address | [ReverseRegistrar.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/reverseRegistrar/ReverseRegistrar.sol) | [ReverseRegistrar.sol](https://github.com/base/basenames/blob/main/src/L2/ReverseRegistrar.sol) |
+| [L1 Resolver](https://docs.ens.domains/resolvers/ccip-read) | Enables cross-chain, wildcard resolution from L1 | [OffchainResolver.sol](https://github.com/ensdomains/offchain-resolver/blob/main/packages/contracts/contracts/OffchainResolver.sol) | [L1Resolver.sol](https://github.com/base/basenames/blob/main/src/L1/L1Resolver.sol) | 
+| [L2 Resolver](https://docs.ens.domains/resolvers/public) | A standard public resolver for storing records associated with namespaces | [PublicResolver.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/PublicResolver.sol) | [L2Resolver.sol](https://github.com/base/basenames/blob/main/src/L2/L2Resolver.sol) | 
+| Registrar Controller | A permissioned contract which manages registration payment | [ETHRegistrarController.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/ETHRegistrarController.sol) | [RegistrarController.sol](https://github.com/base/basenames/blob/main/src/L2/RegistrarController.sol) |
+| Stable Price Oracle | The source of pricing based on name length and duration of registration | [StablePriceOracle.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/StablePriceOracle.sol) | [StablePriceOracle.sol](https://github.com/base/basenames/blob/main/src/L2/StablePriceOracle.sol) |
+| Exponential Premium Oracle | A Dutch auction pricing mechanism for fairly pricing names after expiry | [ExponentialPremiumPricingOracle.sol](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/ExponentialPremiumPriceOracle.sol) | [ExponentialPremiumPricingOracle.sol](https://github.com/base/basenames/blob/main/src/L2/ExponentialPremiumPriceOracle.sol) |
 
 In addition to replicating the base behavior of the ENS protocol, we are offering a series of promotional discounts associated with various Coinbase product integrations. As such, the Base Usernames Registrar Controller allows users to perform discounted registrations while passing along integration-specific `validationData`. Each discount leverages a common interface: 
 ```solidity
@@ -99,7 +99,7 @@ interface IDiscountValidator {
     function isValidDiscountRegistration(address claimer, bytes calldata validationData) external returns (bool);
 }
 ```
-The various implementations can be found [in this directory](https://github.com/base-org/basenames/tree/main/src/L2/discounts). 
+The various implementations can be found [in this directory](https://github.com/base/basenames/tree/main/src/L2/discounts). 
 
 ## Usage
 
