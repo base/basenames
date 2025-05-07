@@ -210,6 +210,11 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @param newReverseRegistrar The address of the new reverse registrar.
     event ReverseRegistrarUpdated(address newReverseRegistrar);
+    
+    /// @notice Emitted when the  L2ReverseRegistrar address is updated.
+    ///
+    /// @param newL2ReverseRegistrar The address of the new l2ReverseRegistrar.
+    event L2ReverseRegistrarUpdated(address newL2ReverseRegistrar);
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                          MODIFIERS                         */
@@ -340,6 +345,16 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     function setReverseRegistrar(IReverseRegistrar reverse_) external onlyOwner {
         _getURCStorage().reverseRegistrar = reverse_;
         emit ReverseRegistrarUpdated(address(reverse_));
+    }
+
+    /// @notice Allows the `owner` to set the address of the L2ReverseRegistrar.
+    ///
+    /// @dev Emits `L2ReverseRegistrarUpdated` after setting the `L2ReverseRegistrar` contract address.
+    ///
+    /// @param l2ReverseRegistrar_ The new reverse registrar contract.
+    function setL2ReverseRegistrar(address l2ReverseRegistrar_) external onlyOwner {
+        _getURCStorage().l2ReverseRegistrar = l2ReverseRegistrar_;
+        emit L2ReverseRegistrarUpdated(l2ReverseRegistrar_);
     }
 
     /// @notice Allows the `owner` to set the payment receiver address.
@@ -643,13 +658,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         uint256[] memory cointypes,
         bytes memory signature
     ) internal {
-        URCStorage storage $ = _getURCStorage();
-        // vestigial reverse resolution
-        $.reverseRegistrar.setNameForAddr(msg.sender, owner, resolver, string.concat(name, $.rootName));
-        // new reverse registrar
-        IL2ReverseRegistrar($.l2ReverseRegistrar).setNameForAddrWithSignature(
-            msg.sender, expiry, name, cointypes, signature
-        );
+        _getURCStorage().reverseRegistrar.setNameForAddrWithSignature(msg.sender, expiry, name, cointypes, signature);
     }
 
     /// @notice Helper method for updating the `activeDiscounts` enumerable set.
