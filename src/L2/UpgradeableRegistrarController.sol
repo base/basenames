@@ -13,7 +13,7 @@ import {IDiscountValidator} from "./interface/IDiscountValidator.sol";
 import {IL2ReverseRegistrar} from "./interface/IL2ReverseRegistrar.sol";
 import {IPriceOracle} from "./interface/IPriceOracle.sol";
 import {L2Resolver} from "./L2Resolver.sol";
-import {IReverseRegistrar} from "./interface/IReverseRegistrar.sol";
+import {IReverseRegistrarV2} from "./interface/IReverseRegistrarV2.sol";
 import {RegistrarController} from "./RegistrarController.sol";
 
 /// @title Upgradeable Registrar Controller
@@ -72,7 +72,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         /// @notice The implementation of the pricing oracle.
         IPriceOracle prices;
         /// @notice The implementation of the Reverse Registrar contract.
-        IReverseRegistrar reverseRegistrar;
+        IReverseRegistrarV2 reverseRegistrar;
         /// @notice An enumerable set for tracking which discounts are currently active.
         EnumerableSetLib.Bytes32Set activeDiscounts;
         /// @notice The node for which this name enables registration. It must match the `rootNode` of `base`.
@@ -289,7 +289,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     function initialize(
         BaseRegistrar base_,
         IPriceOracle prices_,
-        IReverseRegistrar reverseRegistrar_,
+        IReverseRegistrarV2 reverseRegistrar_,
         address owner_,
         bytes32 rootNode_,
         string memory rootName_,
@@ -342,7 +342,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @dev Emits `ReverseRegistrarUpdated` after setting the `reverseRegistrar` contract.
     ///
     /// @param reverse_ The new reverse registrar contract.
-    function setReverseRegistrar(IReverseRegistrar reverse_) external onlyOwner {
+    function setReverseRegistrar(IReverseRegistrarV2 reverse_) external onlyOwner {
         _getURCStorage().reverseRegistrar = reverse_;
         emit ReverseRegistrarUpdated(address(reverse_));
     }
@@ -431,7 +431,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @notice Fetches the Reverse Registrar from storage.
     ///
     /// @return The stored Reverse Registrar.
-    function reverseRegistrar() external view returns (IReverseRegistrar) {
+    function reverseRegistrar() external view returns (IReverseRegistrarV2) {
         return _getURCStorage().reverseRegistrar;
     }
 
