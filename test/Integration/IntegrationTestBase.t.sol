@@ -118,10 +118,18 @@ contract IntegrationTestBase is Test {
         vm.stopPrank();
     }
 
-    function test_integration_register() public {
-        vm.stopPrank();
-        vm.startPrank(alice);
+    function _getBasePrices() internal pure returns (uint256[] memory) {
+        uint256[] memory rentPrices = new uint256[](6);
+        rentPrices[0] = 316_808_781_402;
+        rentPrices[1] = 31_680_878_140;
+        rentPrices[2] = 3_168_087_814;
+        rentPrices[3] = 316_808_781;
+        rentPrices[4] = 31_680_878;
+        rentPrices[5] = 3_168_087; // 3,168,808.781402895 = 1e14 / (365.25 * 24 * 3600)
+        return rentPrices;
+    }
 
+    function _registerAlice() internal {
         string memory name = "alice";
         uint256 duration = 365.25 days;
 
@@ -138,16 +146,5 @@ contract IntegrationTestBase is Test {
         });
 
         registrarController.register{value: registerPrice}(request);
-    }
-
-    function _getBasePrices() internal pure returns (uint256[] memory) {
-        uint256[] memory rentPrices = new uint256[](6);
-        rentPrices[0] = 316_808_781_402;
-        rentPrices[1] = 31_680_878_140;
-        rentPrices[2] = 3_168_087_814;
-        rentPrices[3] = 316_808_781;
-        rentPrices[4] = 31_680_878;
-        rentPrices[5] = 3_168_087; // 3,168,808.781402895 = 1e14 / (365.25 * 24 * 3600)
-        return rentPrices;
     }
 }

@@ -6,10 +6,10 @@ import {GRACE_PERIOD} from "src/util/Constants.sol";
 
 contract MockPriceOracle is IPriceOracle {
     uint256 public constant DEFAULT_BASE_WEI = 0.1 ether;
-    uint256 public constant DEFAULT_PERMIUM_WEI = 0;
+    uint256 public constant DEFAULT_PREMIUM_WEI = 0;
     uint256 public constant DEFAULT_INCLUDED_PREMIUM = 0.2 ether;
 
-    IPriceOracle.Price public defaultPrice = IPriceOracle.Price({base: DEFAULT_BASE_WEI, premium: DEFAULT_PERMIUM_WEI});
+    IPriceOracle.Price public defaultPrice = IPriceOracle.Price({base: DEFAULT_BASE_WEI, premium: DEFAULT_PREMIUM_WEI});
 
     mapping(string => IPriceOracle.Price) prices;
 
