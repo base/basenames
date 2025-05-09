@@ -6,6 +6,7 @@ import {console} from "forge-std/console.sol";
 
 import {IntegrationTestBase} from "./IntegrationTestBase.t.sol";
 import {MockL2ReverseRegistrar} from "test/mocks/MockL2ReverseRegistrar.sol";
+import {MockReverseRegistrarV2} from "test/mocks/MockReverseRegistrarV2.sol";
 
 import {ExponentialPremiumPriceOracle} from "src/L2/ExponentialPremiumPriceOracle.sol";
 import {IPriceOracle} from "src/L2/interface/IPriceOracle.sol";
@@ -19,7 +20,8 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
     UpgradeableRegistrarController public controllerImpl;
     UpgradeableRegistrarController public controller;
     TransparentUpgradeableProxy public proxy;
-    MockL2ReverseRegistrar public l2ReverseRegistrar;
+    MockL2ReverseRegistrar public l2ReverseRegistrar; 
+    MockReverseRegistrarV2 public reverseRegistrarv2; 
 
     address admin;
     uint256 duration = 365.25 days;
@@ -35,6 +37,7 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
         admin = makeAddr("admin");
 
         l2ReverseRegistrar = new MockL2ReverseRegistrar();
+        reverseRegistrarv2 = new MockReverseRegistrarV2();
 
         exponentialPremiumPriceOracle = new ExponentialPremiumPriceOracle(
             _getBasePrices(), EXPIRY_AUCTION_START_PRICE, EXPIRY_AUCTION_DURATION_DAYS
@@ -44,7 +47,7 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
             UpgradeableRegistrarController.initialize.selector,
             baseRegistrar,
             exponentialPremiumPriceOracle,
-            reverseRegistrar,
+            reverseRegistrarv2,
             owner,
             BASE_ETH_NODE,
             ".base.eth",
