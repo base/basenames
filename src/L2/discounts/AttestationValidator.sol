@@ -6,7 +6,7 @@ import {AttestationVerifier} from "verifications/libraries/AttestationVerifier.s
 import {IAttestationIndexer} from "verifications/interfaces/IAttestationIndexer.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
 
-import {IDiscountValidator} from "src/L2/interface/IDiscountValidator.sol";
+import {DiscountValidator} from "./DiscountValidator.sol";
 import {SybilResistanceVerifier} from "src/lib/SybilResistanceVerifier.sol";
 
 /// @title Discount Validator for: Coinbase Attestation Validator
@@ -17,7 +17,7 @@ import {SybilResistanceVerifier} from "src/lib/SybilResistanceVerifier.sol";
 ///         https://github.com/coinbase/verifications
 ///
 /// @author Coinbase (https://github.com/base-org/usernames)
-contract AttestationValidator is Ownable, AttestationAccessControl, IDiscountValidator {
+contract AttestationValidator is Ownable, AttestationAccessControl, DiscountValidator {
     /// @dev The attestation service signer.
     address signer;
 
@@ -52,7 +52,7 @@ contract AttestationValidator is Ownable, AttestationAccessControl, IDiscountVal
     /// @param validationData opaque bytes for performing the validation.
     ///
     /// @return `true` if the validation data provided is determined to be valid for the specified claimer, else `false`.
-    function isValidDiscountRegistration(address claimer, bytes calldata validationData) external view returns (bool) {
+    function isValidDiscountRegistration(address claimer, bytes calldata validationData) public override view returns (bool) {
         AttestationVerifier.verifyAttestation(_getAttestation(claimer, schemaID));
 
         return SybilResistanceVerifier.verifySignature(signer, claimer, validationData);

@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
-import {IDiscountValidator} from "src/L2/interface/IDiscountValidator.sol";
+import {DiscountValidator} from "./DiscountValidator.sol";
 
 /// @title Discount Validator for: ERC1155 NFTs
 ///
@@ -11,7 +11,7 @@ import {IDiscountValidator} from "src/L2/interface/IDiscountValidator.sol";
 ///         This discount validator should only be used for "soul-bound" tokens.
 ///
 /// @author Coinbase (https://github.com/base-org/usernames)
-contract ERC1155DiscountValidator is IDiscountValidator {
+contract ERC1155DiscountValidator is DiscountValidator {
     /// @notice The ERC1155 token contract to validate against.
     IERC1155 immutable token;
 
@@ -35,7 +35,7 @@ contract ERC1155DiscountValidator is IDiscountValidator {
     /// @param claimer the discount claimer's address.
     ///
     /// @return `true` if the validation data provided is determined to be valid for the specified claimer, else `false`.
-    function isValidDiscountRegistration(address claimer, bytes calldata) external view returns (bool) {
+    function isValidDiscountRegistration(address claimer, bytes calldata) public view override returns (bool) {
         return (token.balanceOf(claimer, tokenId) > 0);
     }
 }
