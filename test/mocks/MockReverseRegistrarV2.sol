@@ -14,13 +14,10 @@ contract MockReverseRegistrarV2 {
         hasClaimed[claimant] = true;
     }
 
-    function setNameForAddrWithSignature(
-        address addr,
-        uint256,
-        string calldata name,
-        uint256[] memory,
-        bytes memory
-    ) external returns (bytes32) {
+    function setNameForAddrWithSignature(address addr, uint256, string calldata name, uint256[] memory, bytes memory)
+        external
+        returns (bytes32)
+    {
         record = MockReverseRecord({addr: addr, name: name});
         hasClaimed[addr] = true;
         return bytes32(0);

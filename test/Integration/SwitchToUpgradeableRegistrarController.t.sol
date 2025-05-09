@@ -20,8 +20,8 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
     UpgradeableRegistrarController public controllerImpl;
     UpgradeableRegistrarController public controller;
     TransparentUpgradeableProxy public proxy;
-    MockL2ReverseRegistrar public l2ReverseRegistrar; 
-    MockReverseRegistrarV2 public reverseRegistrarv2; 
+    MockL2ReverseRegistrar public l2ReverseRegistrar;
+    MockReverseRegistrarV2 public reverseRegistrarv2;
 
     address admin;
     uint256 duration = 365.25 days;

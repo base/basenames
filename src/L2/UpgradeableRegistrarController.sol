@@ -210,7 +210,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @param newReverseRegistrar The address of the new reverse registrar.
     event ReverseRegistrarUpdated(address newReverseRegistrar);
-    
+
     /// @notice Emitted when the  L2ReverseRegistrar address is updated.
     ///
     /// @param newL2ReverseRegistrar The address of the new l2ReverseRegistrar.
