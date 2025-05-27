@@ -96,7 +96,7 @@ contract SetBaseForwardAddr is ReverseRegistrarV2Base {
         fwdNode = keccak256(abi.encodePacked(BASE_ETH_NODE, nameLabel));
     }
 
-    function _getNodes() internal returns (bytes32[] memory nodes) {
+    function _getNodes() internal view returns (bytes32[] memory nodes) {
         nodes = new bytes32[](1);
         nodes[0] = fwdNode;
     }

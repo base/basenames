@@ -73,8 +73,8 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
 
     function test_canRegisterANewName() public {
         string memory name = "new-name";
-        uint256[] memory cointypes = new uint256[](1);
-        cointypes[0] = 0x80000000 | 0x00002105;
+        uint256[] memory coinTypes = new uint256[](1);
+        coinTypes[0] = 0x80000000 | 0x00002105;
 
         uint256 registerPrice = controller.registerPrice(name, duration);
         uint256 expectedPrice = _getBasePrices()[4] * duration;
@@ -87,7 +87,7 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
             resolver: address(defaultL2Resolver),
             data: new bytes[](0),
             reverseRecord: true,
-            cointypes: cointypes,
+            coinTypes: coinTypes,
             signatureExpiry: block.timestamp,
             signature: ""
         });

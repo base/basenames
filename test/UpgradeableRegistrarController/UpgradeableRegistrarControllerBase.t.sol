@@ -103,8 +103,8 @@ contract UpgradeableRegistrarControllerBase is Test {
         virtual
         returns (UpgradeableRegistrarController.RegisterRequest memory)
     {
-        uint256[] memory cointypes = new uint256[](1);
-        cointypes[0] = baseCointype;
+        uint256[] memory coinTypes = new uint256[](1);
+        coinTypes[0] = baseCointype;
         return UpgradeableRegistrarController.RegisterRequest({
             name: name,
             owner: user,
@@ -112,7 +112,7 @@ contract UpgradeableRegistrarControllerBase is Test {
             resolver: address(resolver),
             data: _getDefaultRegisterData(),
             reverseRecord: true,
-            cointypes: cointypes,
+            coinTypes: coinTypes,
             signatureExpiry: 0,
             signature: ""
         });
