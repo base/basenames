@@ -46,11 +46,11 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         bytes[] data;
         /// @dev Bool to decide whether to set this name as the "primary" name for the `owner`.
         bool reverseRecord;
-        /// @dev Array of cointypes for reverse record setting
-        uint256[] cointypes;
-        /// @dev Signature expiry
+        /// @dev Array of coinTypes for reverse record setting.
+        uint256[] coinTypes;
+        /// @dev Signature expiry.
         uint256 signatureExpiry;
-        /// @dev Signature payload
+        /// @dev Signature payload.
         bytes signature;
     }
 
@@ -508,7 +508,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
 
     /// @notice Enables a caller to register a name and apply a discount.
     ///
-    /// @dev In addition to the validation performed for in a `register` request, this method additionally validates
+    /// @dev In addition to the validation performed in a `register` request, this method additionally validates
     ///     that msg.sender is eligible for the specified `discountKey` given the provided `validationData`.
     ///     The specific encoding of `validationData` is specified in the implementation of the `discountValidator`
     ///     that is being called.
@@ -603,20 +603,13 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         }
 
         if (request.reverseRecord) {
-            _setReverseRecord(
-                request.name,
-                request.resolver,
-                msg.sender,
-                request.signatureExpiry,
-                request.cointypes,
-                request.signature
-            );
+            _setReverseRecord(request.name, request.signatureExpiry, request.coinTypes, request.signature);
         }
 
-        emit NameRegistered(request.name, keccak256(bytes(request.name)), request.owner, expires);
+        emit NameRegistered(request.name, labelhash, request.owner, expires);
     }
 
-    /// @notice Refunds any remaining `msg.value` after processing a registration or renewal given`price`.
+    /// @notice Refunds any remaining `msg.value` after processing a registration or renewal given `price`.
     ///
     /// @dev It is necessary to allow "overpayment" because of premium price decay.  We don't want transactions to fail
     ///     unnecessarily if the premium decreases between tx submission and inclusion.
@@ -634,7 +627,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @dev `multicallWithNodeCheck` ensures that each record being set is for the specified `label`.
     ///
     /// @param resolverAddress The address of the resolver to set records on.
-    /// @param label The keccak256 namehash for the specified name.
+    /// @param label The keccak256 hash for the specified name.
     /// @param data  The abi encoded calldata records that will be used in the multicallable resolver.
     function _setRecords(address resolverAddress, bytes32 label, bytes[] calldata data) internal {
         bytes32 nodehash = keccak256(abi.encodePacked(_getURCStorage().rootNode, label));
@@ -645,20 +638,13 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver`.
     ///
     /// @param name The specified name.
-    /// @param resolver The resolver to set the reverse record on.
-    /// @param owner  The owner of the reverse record.
     /// @param expiry The signature expiry timestamp.
-    /// @param cointypes The array of cointypes representing networks that are valid for replaying this transaction.
+    /// @param coinTypes The array of coinTypes representing networks that are valid for replaying this transaction.
     /// @param signature The ECDSA signature bytes.
-    function _setReverseRecord(
-        string memory name,
-        address resolver,
-        address owner,
-        uint256 expiry,
-        uint256[] memory cointypes,
-        bytes memory signature
-    ) internal {
-        _getURCStorage().reverseRegistrar.setNameForAddrWithSignature(msg.sender, expiry, name, cointypes, signature);
+    function _setReverseRecord(string memory name, uint256 expiry, uint256[] memory coinTypes, bytes memory signature)
+        internal
+    {
+        _getURCStorage().reverseRegistrar.setNameForAddrWithSignature(msg.sender, expiry, name, coinTypes, signature);
     }
 
     /// @notice Helper method for updating the `activeDiscounts` enumerable set.

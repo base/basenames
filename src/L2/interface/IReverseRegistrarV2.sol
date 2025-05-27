@@ -7,7 +7,7 @@ interface IReverseRegistrarV2 {
     ///
     /// @param owner The address to set as the owner of the reverse record in ENS.
     ///
-    /// @return The ENS node hash of the base-specific reverse record.
+    /// @return The ENS node hash of the Base network-specific reverse record.
     function claim(address owner) external returns (bytes32);
 
     /// @notice Sets the reverse record `name` for `addr`.

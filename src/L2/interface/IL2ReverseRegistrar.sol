@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.23;
 
 /// @notice Interface for the L2 Reverse Registrar.
 ///     https://github.com/ensdomains/ens-contracts/tree/feature/simplify-reverse-resolver
