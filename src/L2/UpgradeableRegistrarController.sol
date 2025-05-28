@@ -18,7 +18,7 @@ import {RegistrarController} from "./RegistrarController.sol";
 
 /// @title Upgradeable Registrar Controller
 ///
-/// @notice A permissioned controller for managing registering and renewing names against the `base` registrar.
+/// @notice A permissioned controller for managing registering and renewing names against the `BaseRegistrar` contract.
 ///         This contract enables a `discountedRegister` flow which is validated by calling external implementations
 ///         of the `IDiscountValidator` interface. Pricing, denominated in wei, is determined by calling out to a
 ///         contract that implements `IPriceOracle`.
@@ -66,6 +66,8 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         uint256 discount;
     }
 
+    /// @notice Storage struct for UpgradeableRegistrarController (URC).
+    /// @custom:storage-location erc7201:upgradeableregistrarcontroller.storage
     struct URCStorage {
         /// @notice The implementation of the `BaseRegistrar`.
         BaseRegistrar base;
@@ -73,6 +75,8 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         IPriceOracle prices;
         /// @notice The implementation of the Reverse Registrar contract.
         IReverseRegistrarV2 reverseRegistrar;
+        /// @notice The address of the L2 Reverse Registrar.
+        address l2ReverseRegistrar;
         /// @notice An enumerable set for tracking which discounts are currently active.
         EnumerableSetLib.Bytes32Set activeDiscounts;
         /// @notice The node for which this name enables registration. It must match the `rootNode` of `base`.
@@ -83,8 +87,6 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         address paymentReceiver;
         /// @notice The address of the legacy registrar controller.
         address legacyRegistrarController;
-        /// @notice The address of the L2 Reverse Registrar.
-        address l2ReverseRegistrar;
         /// @notice Each discount is stored against a unique 32-byte identifier, i.e. keccak256("test.discount.validator").
         mapping(bytes32 key => DiscountDetails details) discounts;
         /// @notice Storage for which addresses have already registered with a discount.
@@ -103,7 +105,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
 
     /// @notice The EIP-7201 storage location, determined by:
     ///     keccak256(abi.encode(uint256(keccak256("upgradeable.registrar.controller.storage")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant UPGRADEABLE_REGISTRAR_CONTROLLER_STORAGE_LOCATION =
+    bytes32 private constant _UPGRADEABLE_REGISTRAR_CONTROLLER_STORAGE_LOCATION =
         0xf52df153eda7a96204b686efee7d70251f4cef9d04988d95cc73d1a93f655200;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -156,6 +158,9 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param validator The address of the validator being set.
     error InvalidValidator(bytes32 key, address validator);
 
+    /// @notice Thrown when the modular contract address is set to address(0).
+    error ZeroAddress();
+
     /// @notice Thrown when a refund transfer is unsuccessful.
     error TransferFailed();
 
@@ -190,6 +195,12 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param expires The date that the renewed name expires.
     event NameRenewed(string name, bytes32 indexed label, uint256 expires);
 
+    /// @notice Emitted when a name is registered with a discount.
+    ///
+    /// @param registrant The address of the registrant.
+    /// @param discountKey The discount key that was used to register.
+    event DiscountApplied(address indexed registrant, bytes32 indexed discountKey);
+
     /// @notice Emitted when the payment receiver is updated.
     ///
     /// @param newPaymentReceiver The address of the new payment receiver.
@@ -199,12 +210,6 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @param newPrices The address of the new price oracle.
     event PriceOracleUpdated(address newPrices);
-
-    /// @notice Emitted when a name is registered with a discount.
-    ///
-    /// @param registrant The address of the registrant.
-    /// @param discountKey The discount key that was used to register.
-    event DiscountApplied(address indexed registrant, bytes32 indexed discountKey);
 
     /// @notice Emitted when the reverse registrar is updated.
     ///
@@ -333,6 +338,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @param prices_ The new pricing oracle.
     function setPriceOracle(IPriceOracle prices_) external onlyOwner {
+        if (address(prices_) == address(0)) revert ZeroAddress();
         _getURCStorage().prices = prices_;
         emit PriceOracleUpdated(address(prices_));
     }
@@ -343,6 +349,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @param reverse_ The new reverse registrar contract.
     function setReverseRegistrar(IReverseRegistrarV2 reverse_) external onlyOwner {
+        if (address(reverse_) == address(0)) revert ZeroAddress();
         _getURCStorage().reverseRegistrar = reverse_;
         emit ReverseRegistrarUpdated(address(reverse_));
     }
@@ -353,6 +360,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @param l2ReverseRegistrar_ The new reverse registrar contract.
     function setL2ReverseRegistrar(address l2ReverseRegistrar_) external onlyOwner {
+        if (l2ReverseRegistrar_ == address(0)) revert ZeroAddress();
         _getURCStorage().l2ReverseRegistrar = l2ReverseRegistrar_;
         emit L2ReverseRegistrarUpdated(l2ReverseRegistrar_);
     }
@@ -386,25 +394,6 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         return false;
     }
 
-    /// @notice Checks whether the provided `name` is long enough.
-    ///
-    /// @param name The name to check the length of.
-    ///
-    /// @return `true` if the name is equal to or longer than MIN_NAME_LENGTH, else `false`.
-    function valid(string memory name) public pure returns (bool) {
-        return name.strlen() >= MIN_NAME_LENGTH;
-    }
-
-    /// @notice Checks whether the provided `name` is available.
-    ///
-    /// @param name The name to check the availability of.
-    ///
-    /// @return `true` if the name is `valid` and available on the `base` registrar, else `false`.
-    function available(string memory name) public view returns (bool) {
-        bytes32 label = keccak256(bytes(name));
-        return valid(name) && _getURCStorage().base.isAvailable(uint256(label));
-    }
-
     /// @notice Fetches a specific discount from storage.
     ///
     /// @param discountKey The uuid of the discount to fetch.
@@ -435,6 +424,37 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         return _getURCStorage().reverseRegistrar;
     }
 
+    /// @notice Check which discounts are currently set to `active`.
+    ///
+    /// @return An array of `DiscountDetails` that are all currently marked as `active`.
+    function getActiveDiscounts() external view returns (DiscountDetails[] memory) {
+        URCStorage storage $ = _getURCStorage();
+        bytes32[] memory activeDiscountKeys = $.activeDiscounts.values();
+        DiscountDetails[] memory activeDiscountDetails = new DiscountDetails[](activeDiscountKeys.length);
+        for (uint256 i; i < activeDiscountKeys.length; i++) {
+            activeDiscountDetails[i] = $.discounts[activeDiscountKeys[i]];
+        }
+        return activeDiscountDetails;
+    }
+
+    /// @notice Checks whether the provided `name` is long enough.
+    ///
+    /// @param name The name to check the length of.
+    ///
+    /// @return `true` if the name is equal to or longer than MIN_NAME_LENGTH, else `false`.
+    function valid(string memory name) public pure returns (bool) {
+        return name.strlen() >= MIN_NAME_LENGTH;
+    }
+
+    /// @notice Checks whether the provided `name` is available.
+    ///
+    /// @param name The name to check the availability of.
+    ///
+    /// @return `true` if the name is `valid` and available on the `base` registrar, else `false`.
+    function available(string memory name) public view returns (bool) {
+        return valid(name) && _getURCStorage().base.isAvailable(uint256(_getLabelFromName(name)));
+    }
+
     /// @notice Checks the rent price for a provided `name` and `duration`.
     ///
     /// @param name The name to check the rent price of.
@@ -442,8 +462,11 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @return price The `Price` tuple containing the base and premium prices respectively, denominated in wei.
     function rentPrice(string memory name, uint256 duration) public view returns (IPriceOracle.Price memory price) {
-        bytes32 label = keccak256(bytes(name));
-        price = _getURCStorage().prices.price(name, _getExpiry(uint256(label)), duration);
+        price = _getURCStorage().prices.price({
+            name: name,
+            expires: _getExpiry(uint256(_getLabelFromName(name))),
+            duration: duration
+        });
     }
 
     /// @notice Checks the register price for a provided `name` and `duration`.
@@ -474,20 +497,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     {
         uint256 discount = _getURCStorage().discounts[discountKey].discount;
         price = registerPrice(name, duration);
-        price = (price >= discount) ? price - discount : 0;
-    }
-
-    /// @notice Check which discounts are currently set to `active`.
-    ///
-    /// @return An array of `DiscountDetails` that are all currently marked as `active`.
-    function getActiveDiscounts() external view returns (DiscountDetails[] memory) {
-        URCStorage storage $ = _getURCStorage();
-        bytes32[] memory activeDiscountKeys = $.activeDiscounts.values();
-        DiscountDetails[] memory activeDiscountDetails = new DiscountDetails[](activeDiscountKeys.length);
-        for (uint256 i; i < activeDiscountKeys.length; i++) {
-            activeDiscountDetails[i] = $.discounts[activeDiscountKeys[i]];
-        }
-        return activeDiscountDetails;
+        price = (price > discount) ? price - discount : 0;
     }
 
     /// @notice Enables a caller to register a name.
@@ -496,7 +506,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///     This `payable` method must receive appropriate `msg.value` to pass `_validatePayment()`.
     ///
     /// @param request The `RegisterRequest` struct containing the details for the registration.
-    function register(RegisterRequest calldata request) public payable validRegistration(request) {
+    function register(RegisterRequest calldata request) external payable validRegistration(request) {
         uint256 price = registerPrice(request.name, request.duration);
 
         _validatePayment(price);
@@ -518,10 +528,10 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param discountKey The uuid of the discount being accessed.
     /// @param validationData Data necessary to perform the associated discount validation.
     function discountedRegister(RegisterRequest calldata request, bytes32 discountKey, bytes calldata validationData)
-        public
+        external
         payable
-        validDiscount(discountKey, validationData)
         validRegistration(request)
+        validDiscount(discountKey, validationData)
     {
         URCStorage storage $ = _getURCStorage();
 
@@ -548,8 +558,8 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param duration The duration to extend the expiry, in seconds.
     function renew(string calldata name, uint256 duration) external payable {
         URCStorage storage $ = _getURCStorage();
-        bytes32 labelhash = keccak256(bytes(name));
-        uint256 tokenId = uint256(labelhash);
+        bytes32 label = _getLabelFromName(name);
+        uint256 tokenId = uint256(label);
         IPriceOracle.Price memory price = rentPrice(name, duration);
 
         _validatePayment(price.base);
@@ -558,7 +568,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
 
         _refundExcessEth(price.base);
 
-        emit NameRenewed(name, labelhash, expires);
+        emit NameRenewed(name, label, expires);
     }
 
     /// @notice Internal helper for validating ETH payments
@@ -567,22 +577,8 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @param price The required value.
     function _validatePayment(uint256 price) internal {
-        if (msg.value < price) {
-            revert InsufficientValue();
-        }
+        if (msg.value < price) revert InsufficientValue();
         emit ETHPaymentProcessed(msg.sender, price);
-    }
-
-    /// @notice Getter for fetching token expiry.
-    ///
-    /// @dev If the token returns a `0` expiry time, it hasn't been registered before.
-    ///
-    /// @param tokenId The ID of the token to check for expiry.
-    ///
-    /// @return expires Returns the expiry + GRACE_PERIOD for previously registered names, else 0.
-    function _getExpiry(uint256 tokenId) internal view returns (uint256 expires) {
-        expires = _getURCStorage().base.nameExpires(tokenId);
-        return expires == 0 ? 0 : expires + GRACE_PERIOD;
     }
 
     /// @notice Shared registration logic for both `register()` and `discountedRegister()`.
@@ -593,20 +589,24 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     ///
     /// @param request The `RegisterRequest` struct containing the details for the registration.
     function _register(RegisterRequest calldata request) internal {
-        bytes32 labelhash = keccak256(bytes(request.name));
-        uint256 expires = _getURCStorage().base.registerWithRecord(
-            uint256(labelhash), request.owner, request.duration, request.resolver, 0
-        );
+        bytes32 label = _getLabelFromName(request.name);
+        uint256 expires = _getURCStorage().base.registerWithRecord({
+            id: uint256(label),
+            owner: request.owner,
+            duration: request.duration,
+            resolver: request.resolver,
+            ttl: 0
+        });
 
         if (request.data.length > 0) {
-            _setRecords(request.resolver, labelhash, request.data);
+            _setRecords(request.resolver, label, request.data);
         }
 
         if (request.reverseRecord) {
             _setReverseRecord(request.name, request.signatureExpiry, request.coinTypes, request.signature);
         }
 
-        emit NameRegistered(request.name, labelhash, request.owner, expires);
+        emit NameRegistered(request.name, label, request.owner, expires);
     }
 
     /// @notice Refunds any remaining `msg.value` after processing a registration or renewal given `price`.
@@ -658,6 +658,27 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         active ? $.activeDiscounts.add(key) : $.activeDiscounts.remove(key);
     }
 
+    /// @notice Getter for fetching token expiry.
+    ///
+    /// @dev If the token returns a `0` expiry time, it hasn't been registered before.
+    ///
+    /// @param tokenId The ID of the token to check for expiry.
+    ///
+    /// @return expires Returns the expiry + GRACE_PERIOD for previously registered names, else 0.
+    function _getExpiry(uint256 tokenId) internal view returns (uint256 expires) {
+        expires = _getURCStorage().base.nameExpires(tokenId);
+        return expires == 0 ? 0 : expires + GRACE_PERIOD;
+    }
+
+    /// @notice Helper for calculating the label of a given name.
+    ///
+    /// @param name The singular name, i.e. `jesse`.
+    ///
+    /// @return label The keccak256 hash of the provided `name`.
+    function _getLabelFromName(string memory name) internal pure returns (bytes32 label) {
+        label = keccak256(bytes(name));
+    }
+
     /// @notice Allows anyone to withdraw the eth accumulated on this contract back to the `paymentReceiver`.
     function withdrawETH() public {
         (bool sent,) = payable(_getURCStorage().paymentReceiver).call{value: (address(this).balance)}("");
@@ -666,7 +687,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
 
     function _getURCStorage() private pure returns (URCStorage storage $) {
         assembly {
-            $.slot := UPGRADEABLE_REGISTRAR_CONTROLLER_STORAGE_LOCATION
+            $.slot := _UPGRADEABLE_REGISTRAR_CONTROLLER_STORAGE_LOCATION
         }
     }
 }
