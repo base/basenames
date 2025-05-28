@@ -530,8 +530,8 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     function discountedRegister(RegisterRequest calldata request, bytes32 discountKey, bytes calldata validationData)
         external
         payable
-        validRegistration(request)
         validDiscount(discountKey, validationData)
+        validRegistration(request)
     {
         URCStorage storage $ = _getURCStorage();
 
