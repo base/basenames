@@ -4,7 +4,7 @@ pragma solidity ^0.8.23;
 import {EnumerableSetLib} from "solady/utils/EnumerableSetLib.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IMulticallable} from "ens-contracts/resolvers/IMulticallable.sol";
-import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {StringUtils} from "ens-contracts/ethregistrar/StringUtils.sol";
 
@@ -27,7 +27,7 @@ import {IRegistrarController} from "./interface/IRegistrarController.sol";
 ///         https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/ETHRegistrarController.sol
 ///
 /// @author Coinbase (https://github.com/base/basenames)
-contract UpgradeableRegistrarController is OwnableUpgradeable {
+contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     using StringUtils for *;
     using SafeERC20 for IERC20;
     using EnumerableSetLib for EnumerableSetLib.Bytes32Set;
