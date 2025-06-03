@@ -383,11 +383,9 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @return `true` if any of the addresses have already registered with a discount, else `false`.
     function hasRegisteredWithDiscount(address[] memory addresses) external view returns (bool) {
         URCStorage storage $ = _getURCStorage();
+        if (RegistrarController($.legacyRegistrarController).hasRegisteredWithDiscount(addresses)) return true;
         for (uint256 i; i < addresses.length; i++) {
-            if (
-                $.discountedRegistrants[addresses[i]]
-                    || RegistrarController($.legacyRegistrarController).hasRegisteredWithDiscount(addresses)
-            ) {
+            if ($.discountedRegistrants[addresses[i]]) {
                 return true;
             }
         }
