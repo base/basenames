@@ -249,15 +249,18 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @notice Decorator for validating discounted registrations.
     ///
     /// @dev Validates that:
-    ///     1. That the registrant has not already registered with a discount
-    ///     2. That the discount is `active`
+    ///     1. That the registrant has not already registered with a discount.
+    ///     2. That the discount is `active`.
     ///     3. That the associated `discountValidator` returns true when `isValidDiscountRegistration` is called.
     ///
     /// @param discountKey The uuid of the discount.
     /// @param validationData The associated validation data for this discount registration.
     modifier validDiscount(bytes32 discountKey, bytes calldata validationData) {
         URCStorage storage $ = _getURCStorage();
-        if ($.discountedRegistrants[msg.sender]) revert AlreadyRegisteredWithDiscount(msg.sender);
+        if (
+            $.discountedRegistrants[msg.sender]
+                || RegistrarController($.legacyRegistrarController).discountedRegistrants(msg.sender)
+        ) revert AlreadyRegisteredWithDiscount(msg.sender);
         DiscountDetails memory details = $.discounts[discountKey];
 
         if (!details.active) revert InactiveDiscount(discountKey);
