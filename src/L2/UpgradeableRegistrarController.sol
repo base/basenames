@@ -117,10 +117,10 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @param sender The address of the sender.
     error AlreadyRegisteredWithDiscount(address sender);
 
-    /// @notice Thrown when a name is not available.
+    /// @notice Thrown when a name is not valid.
     ///
-    /// @param name The name that is not available.
-    error NameNotAvailable(string name);
+    /// @param name The name that is not valid.
+    error NameNotValid(string name);
 
     /// @notice Thrown when a name's duration is not longer than `MIN_REGISTRATION_DURATION`.
     ///
@@ -229,7 +229,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///
     /// @dev Validates that:
     ///     1. There is a `resolver` specified` when `data` is set
-    ///     2. That the name is `available()`
+    ///     2. That the name is `valid()`
     ///     3. That the registration `duration` is sufficiently long
     ///
     /// @param request The RegisterRequest that is being validated.
@@ -237,8 +237,8 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         if (request.data.length > 0 && request.resolver == address(0)) {
             revert ResolverRequiredWhenDataSupplied();
         }
-        if (!available(request.name)) {
-            revert NameNotAvailable(request.name);
+        if (!valid(request.name)) {
+            revert NameNotValid(request.name);
         }
         if (request.duration < MIN_REGISTRATION_DURATION) {
             revert DurationTooShort(request.duration);
@@ -452,7 +452,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @param name The name to check the availability of.
     ///
     /// @return `true` if the name is `valid` and available on the `base` registrar, else `false`.
-    function available(string memory name) public view returns (bool) {
+    function available(string memory name) external view returns (bool) {
         return valid(name) && _getURCStorage().base.isAvailable(uint256(_getLabelFromName(name)));
     }
 
