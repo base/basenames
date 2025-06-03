@@ -7,7 +7,7 @@ interface IRegistrarController {
     /// @param registrant The address of the registrant.
     ///
     /// @return hasRegisteredWithDiscount Returns `true` if the registrant has previously claimed a discount, else `false`.
-    function discountedRegistrants(address registrant) external returns (bool hasRegisteredWithDiscount);
+    function discountedRegistrants(address registrant) external returns (bool);
 
     /// @notice Checks whether any of the provided addresses have registered with a discount.
     ///
