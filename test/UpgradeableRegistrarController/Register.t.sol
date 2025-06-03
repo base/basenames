@@ -16,13 +16,16 @@ contract Register is UpgradeableRegistrarControllerBase {
         controller.register{value: price}(noResolverRequest);
     }
 
-    function test_reverts_whenNameNotAvailble() public {
+    function test_reverts_whenNameNotValid() public {
         vm.deal(user, 1 ether);
-        uint256 price = controller.registerPrice(name, duration);
-        base.setAvailable(uint256(nameLabel), false);
-        vm.expectRevert(abi.encodeWithSelector(UpgradeableRegistrarController.NameNotAvailable.selector, name));
+        UpgradeableRegistrarController.RegisterRequest memory shortNameRequest = _getDefaultRegisterRequest();
+        shortNameRequest.name = "a";
+        uint256 price = controller.registerPrice(shortNameRequest.name, duration);
+        vm.expectRevert(
+            abi.encodeWithSelector(UpgradeableRegistrarController.NameNotValid.selector, shortNameRequest.name)
+        );
         vm.prank(user);
-        controller.register{value: price}(_getDefaultRegisterRequest());
+        controller.register{value: price}(shortNameRequest);
     }
 
     function test_reverts_whenDurationTooShort() public {

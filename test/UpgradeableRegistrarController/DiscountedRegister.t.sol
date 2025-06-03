@@ -34,17 +34,22 @@ contract DiscountedRegister is UpgradeableRegistrarControllerBase {
         controller.discountedRegister{value: price}(_getDefaultRegisterRequest(), discountKey, "");
     }
 
-    function test_reverts_whenNameNotAvailble() public {
+    function test_reverts_whenNameNotValid() public {
         vm.deal(user, 1 ether);
+        UpgradeableRegistrarController.RegisterRequest memory shortNameRequest = _getDefaultRegisterRequest();
+        shortNameRequest.name = "a";
+        uint256 price = controller.discountedRegisterPrice(shortNameRequest.name, duration, discountKey);
+
         vm.prank(owner);
         controller.setDiscountDetails(_getDefaultDiscount());
-        uint256 price = controller.discountedRegisterPrice(name, duration, discountKey);
         validator.setReturnValue(true);
-        base.setAvailable(uint256(nameLabel), false);
+        base.setAvailable(uint256(nameLabel), true);
 
-        vm.expectRevert(abi.encodeWithSelector(UpgradeableRegistrarController.NameNotAvailable.selector, name));
+        vm.expectRevert(
+            abi.encodeWithSelector(UpgradeableRegistrarController.NameNotValid.selector, shortNameRequest.name)
+        );
         vm.prank(user);
-        controller.discountedRegister{value: price}(_getDefaultRegisterRequest(), discountKey, "");
+        controller.discountedRegister{value: price}(shortNameRequest, discountKey, "");
     }
 
     function test_reverts_whenDurationTooShort() public {
