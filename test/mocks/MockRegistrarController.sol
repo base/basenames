@@ -22,5 +22,6 @@ contract MockRegistrarController {
 
     function setHasRegisteredWithDiscount(address addr, bool status) external {
         hasRegistered[addr] = status;
+        discountedRegistrants[addr] = status;
     }
 }
