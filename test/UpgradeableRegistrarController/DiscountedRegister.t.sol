@@ -145,4 +145,25 @@ contract DiscountedRegister is UpgradeableRegistrarControllerBase {
         vm.prank(user);
         controller.discountedRegister{value: price}(request, discountKey, "");
     }
+
+    function test_reverts_ifTheRegistrantHasAlreadyRegisteredWithDiscountOnLegacy() public {
+        vm.deal(user, 1 ether);
+        vm.prank(owner);
+        controller.setDiscountDetails(_getDefaultDiscount());
+        validator.setReturnValue(true);
+        base.setAvailable(uint256(nameLabel), true);
+        UpgradeableRegistrarController.RegisterRequest memory request = _getDefaultRegisterRequest();
+        uint256 expires = block.timestamp + request.duration;
+        base.setNameExpires(uint256(nameLabel), expires);
+        uint256 price = controller.discountedRegisterPrice(name, duration, discountKey);
+
+        legacyController.setHasRegisteredWithDiscount(user, true);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(UpgradeableRegistrarController.AlreadyRegisteredWithDiscount.selector, user)
+        );
+        request.name = "newname";
+        vm.prank(user);
+        controller.discountedRegister{value: price}(request, discountKey, "");
+    }
 }

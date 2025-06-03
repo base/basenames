@@ -3,18 +3,18 @@ pragma solidity ^0.8.23;
 
 import {EnumerableSetLib} from "solady/utils/EnumerableSetLib.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IMulticallable} from "ens-contracts/resolvers/IMulticallable.sol";
+import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {StringUtils} from "ens-contracts/ethregistrar/StringUtils.sol";
 
 import {BASE_ETH_NODE, GRACE_PERIOD} from "src/util/Constants.sol";
-import {BaseRegistrar} from "./BaseRegistrar.sol";
+import {IBaseRegistrar} from "./interface/IBaseRegistrar.sol";
 import {IDiscountValidator} from "./interface/IDiscountValidator.sol";
 import {IL2ReverseRegistrar} from "./interface/IL2ReverseRegistrar.sol";
 import {IPriceOracle} from "./interface/IPriceOracle.sol";
-import {L2Resolver} from "./L2Resolver.sol";
 import {IReverseRegistrarV2} from "./interface/IReverseRegistrarV2.sol";
-import {RegistrarController} from "./RegistrarController.sol";
+import {IRegistrarController} from "./interface/IRegistrarController.sol";
 
 /// @title Upgradeable Registrar Controller
 ///
@@ -27,7 +27,7 @@ import {RegistrarController} from "./RegistrarController.sol";
 ///         https://github.com/ensdomains/ens-contracts/blob/staging/contracts/ethregistrar/ETHRegistrarController.sol
 ///
 /// @author Coinbase (https://github.com/base/basenames)
-contract UpgradeableRegistrarController is OwnableUpgradeable {
+contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     using StringUtils for *;
     using SafeERC20 for IERC20;
     using EnumerableSetLib for EnumerableSetLib.Bytes32Set;
@@ -70,7 +70,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @custom:storage-location erc7201:upgradeableregistrarcontroller.storage
     struct URCStorage {
         /// @notice The implementation of the `BaseRegistrar`.
-        BaseRegistrar base;
+        IBaseRegistrar base;
         /// @notice The implementation of the pricing oracle.
         IPriceOracle prices;
         /// @notice The implementation of the Reverse Registrar contract.
@@ -249,15 +249,18 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @notice Decorator for validating discounted registrations.
     ///
     /// @dev Validates that:
-    ///     1. That the registrant has not already registered with a discount
-    ///     2. That the discount is `active`
+    ///     1. That the registrant has not already registered with a discount.
+    ///     2. That the discount is `active`.
     ///     3. That the associated `discountValidator` returns true when `isValidDiscountRegistration` is called.
     ///
     /// @param discountKey The uuid of the discount.
     /// @param validationData The associated validation data for this discount registration.
     modifier validDiscount(bytes32 discountKey, bytes calldata validationData) {
         URCStorage storage $ = _getURCStorage();
-        if ($.discountedRegistrants[msg.sender]) revert AlreadyRegisteredWithDiscount(msg.sender);
+        if (
+            $.discountedRegistrants[msg.sender]
+                || IRegistrarController($.legacyRegistrarController).discountedRegistrants(msg.sender)
+        ) revert AlreadyRegisteredWithDiscount(msg.sender);
         DiscountDetails memory details = $.discounts[discountKey];
 
         if (!details.active) revert InactiveDiscount(discountKey);
@@ -292,7 +295,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param legacyRegistrarController_ the address of the RegistrarController contract.
     /// @param l2ReverseRegistrar_ The address of the ENS-deployed L2 Reverse Registrar.
     function initialize(
-        BaseRegistrar base_,
+        IBaseRegistrar base_,
         IPriceOracle prices_,
         IReverseRegistrarV2 reverseRegistrar_,
         address owner_,
@@ -383,11 +386,9 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @return `true` if any of the addresses have already registered with a discount, else `false`.
     function hasRegisteredWithDiscount(address[] memory addresses) external view returns (bool) {
         URCStorage storage $ = _getURCStorage();
+        if (IRegistrarController($.legacyRegistrarController).hasRegisteredWithDiscount(addresses)) return true;
         for (uint256 i; i < addresses.length; i++) {
-            if (
-                $.discountedRegistrants[addresses[i]]
-                    || RegistrarController($.legacyRegistrarController).hasRegisteredWithDiscount(addresses)
-            ) {
+            if ($.discountedRegistrants[addresses[i]]) {
                 return true;
             }
         }
@@ -631,8 +632,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param data  The abi encoded calldata records that will be used in the multicallable resolver.
     function _setRecords(address resolverAddress, bytes32 label, bytes[] calldata data) internal {
         bytes32 nodehash = keccak256(abi.encodePacked(_getURCStorage().rootNode, label));
-        L2Resolver resolver = L2Resolver(resolverAddress);
-        resolver.multicallWithNodeCheck(nodehash, data);
+        IMulticallable(resolverAddress).multicallWithNodeCheck(nodehash, data);
     }
 
     /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver`.
