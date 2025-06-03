@@ -3,18 +3,18 @@ pragma solidity ^0.8.23;
 
 import {EnumerableSetLib} from "solady/utils/EnumerableSetLib.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IMulticallable} from "ens-contracts/resolvers/IMulticallable.sol";
 import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {StringUtils} from "ens-contracts/ethregistrar/StringUtils.sol";
 
 import {BASE_ETH_NODE, GRACE_PERIOD} from "src/util/Constants.sol";
-import {BaseRegistrar} from "./BaseRegistrar.sol";
+import {IBaseRegistrar} from "./interface/IBaseRegistrar.sol";
 import {IDiscountValidator} from "./interface/IDiscountValidator.sol";
 import {IL2ReverseRegistrar} from "./interface/IL2ReverseRegistrar.sol";
 import {IPriceOracle} from "./interface/IPriceOracle.sol";
-import {L2Resolver} from "./L2Resolver.sol";
 import {IReverseRegistrarV2} from "./interface/IReverseRegistrarV2.sol";
-import {RegistrarController} from "./RegistrarController.sol";
+import {IRegistrarController} from "./interface/IRegistrarController.sol";
 
 /// @title Upgradeable Registrar Controller
 ///
@@ -70,7 +70,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @custom:storage-location erc7201:upgradeableregistrarcontroller.storage
     struct URCStorage {
         /// @notice The implementation of the `BaseRegistrar`.
-        BaseRegistrar base;
+        IBaseRegistrar base;
         /// @notice The implementation of the pricing oracle.
         IPriceOracle prices;
         /// @notice The implementation of the Reverse Registrar contract.
@@ -259,7 +259,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
         URCStorage storage $ = _getURCStorage();
         if (
             $.discountedRegistrants[msg.sender]
-                || RegistrarController($.legacyRegistrarController).discountedRegistrants(msg.sender)
+                || IRegistrarController($.legacyRegistrarController).discountedRegistrants(msg.sender)
         ) revert AlreadyRegisteredWithDiscount(msg.sender);
         DiscountDetails memory details = $.discounts[discountKey];
 
@@ -295,7 +295,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param legacyRegistrarController_ the address of the RegistrarController contract.
     /// @param l2ReverseRegistrar_ The address of the ENS-deployed L2 Reverse Registrar.
     function initialize(
-        BaseRegistrar base_,
+        IBaseRegistrar base_,
         IPriceOracle prices_,
         IReverseRegistrarV2 reverseRegistrar_,
         address owner_,
@@ -386,7 +386,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @return `true` if any of the addresses have already registered with a discount, else `false`.
     function hasRegisteredWithDiscount(address[] memory addresses) external view returns (bool) {
         URCStorage storage $ = _getURCStorage();
-        if (RegistrarController($.legacyRegistrarController).hasRegisteredWithDiscount(addresses)) return true;
+        if (IRegistrarController($.legacyRegistrarController).hasRegisteredWithDiscount(addresses)) return true;
         for (uint256 i; i < addresses.length; i++) {
             if ($.discountedRegistrants[addresses[i]]) {
                 return true;
@@ -632,8 +632,7 @@ contract UpgradeableRegistrarController is OwnableUpgradeable {
     /// @param data  The abi encoded calldata records that will be used in the multicallable resolver.
     function _setRecords(address resolverAddress, bytes32 label, bytes[] calldata data) internal {
         bytes32 nodehash = keccak256(abi.encodePacked(_getURCStorage().rootNode, label));
-        L2Resolver resolver = L2Resolver(resolverAddress);
-        resolver.multicallWithNodeCheck(nodehash, data);
+        IMulticallable(resolverAddress).multicallWithNodeCheck(nodehash, data);
     }
 
     /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver`.

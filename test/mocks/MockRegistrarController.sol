@@ -5,6 +5,8 @@ contract MockRegistrarController {
     mapping(address => bool) hasRegistered;
     uint256 public launchTime;
 
+    mapping(address => bool) public discountedRegistrants;
+
     constructor(uint256 launchTime_) {
         launchTime = launchTime_;
     }
