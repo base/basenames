@@ -4,6 +4,7 @@ pragma solidity ^0.8.23;
 import {IAddrResolver} from "ens-contracts/resolvers/profiles/IAddrResolver.sol";
 import {IAddressResolver} from "ens-contracts/resolvers/profiles/IAddressResolver.sol";
 
+import {AssociatedAccountsLib, SignedAssociationRecord} from "src/lib/AssociatedAccountsLib.sol";
 import {ResolverBase} from "./ResolverBase.sol";
 
 /// @title Address Resolver
@@ -14,6 +15,8 @@ import {ResolverBase} from "./ResolverBase.sol";
 ///
 /// @author Coinbase (https://github.com/base-org/basenames)
 abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase {
+    using AssociatedAccountsLib for SignedAssociationRecord;
+
     struct AddrResolverStorage {
         /// @notice Address record per cointype, node and version.
         mapping(uint64 version => mapping(bytes32 node => mapping(uint256 cointype => bytes addr)))
@@ -26,6 +29,8 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
 
     /// @notice Ethereum mainnet network-as-cointype.
     uint256 private constant COIN_TYPE_ETH = 60;
+
+    error InvalidAssociation();
 
     /// @notice Sets the address associated with an ENS node.
     ///
@@ -76,6 +81,22 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
     /// @return The address of the specified `node` for the specified `coinType`.
     function addr(bytes32 node, uint256 coinType) public view virtual override returns (bytes memory) {
         return _getAddrResolverStorage().versionable_addresses[_getResolverBaseStorage().recordVersions[node]][node][coinType];
+    }
+
+    /// @notice Fetch the array of associated accounts for a specific `node` and `cointype`. 
+    function associatedAddrs(bytes32 node, uint256 coinType) public view returns (address[] memory) { 
+        bytes memory allAssociations = _getAddrResolverStorage().versionable_addresses[_getResolverBaseStorage().recordVersions[node]][node][coinType];
+
+        SignedAssociationRecord[] memory allSARs = abi.decode(allAssociations, (SignedAssociationRecord[]));
+        
+        address[] memory addrs = new address[](allSARs.length);
+        for(uint256 i; i < allSARs.length; i++) {
+            SignedAssociationRecord memory sar = allSARs[i];
+            // Skip invalid associations
+            if(!sar.validateAssociatedAccount()) continue;
+            addrs[i] = allSARs[i].record.approver;
+        }
+        return addrs;
     }
 
     /// @notice ERC-165 compliance.
