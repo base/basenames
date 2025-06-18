@@ -31,10 +31,7 @@ contract CreateName is Script {
 
         vm.startBroadcast(pkey);
 
-        bytes32 label = keccak256(bytes(name));
-        uint256 id = uint256(label);
-
-        BaseRegistrar(BASE_REGISTRAR).registerOnly(id, testnetAddr, duration);
+        BaseRegistrar(BASE_REGISTRAR).registerOnly(_getIdFromName(name), testnetAddr, duration);
 
         if (setRecords) {
             setResolverDetails(name);
@@ -43,9 +40,10 @@ contract CreateName is Script {
 
     function setResolverDetails(string memory name) public {
         vm.startBroadcast(pkey);
+        console.log("Setting records...");
 
-        bytes32 label = keccak256(bytes(name));
-        uint256 id = uint256(label);
+        uint256 id = _getIdFromName(name);
+
         BaseRegistrar(BASE_REGISTRAR).renew(id, 3600);
 
         console.log(BaseRegistrar(BASE_REGISTRAR).nameExpires(id));
@@ -69,6 +67,11 @@ contract CreateName is Script {
         multicallData[2] =
             abi.encodeWithSelector(NameResolver.setName.selector, node, string.concat(name, ".basetest.eth"));
         return multicallData;
+    }
+
+    function _getIdFromName(string memory name) internal returns (uint256 id) {
+        bytes32 label = keccak256(bytes(name));
+        id = uint256(label);
     }
 
     function _addressToBytes(address a) internal pure returns (bytes memory b) {
