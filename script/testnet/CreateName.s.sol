@@ -36,7 +36,7 @@ contract CreateName is Script {
 
         BaseRegistrar(BASE_REGISTRAR).registerOnly(id, testnetAddr, duration);
 
-        if(setRecords) {
+        if (setRecords) {
             setResolverDetails(name);
         }
     }
@@ -52,15 +52,22 @@ contract CreateName is Script {
 
         BaseRegistrar(BASE_REGISTRAR).reclaim(id, testnetAddr);
 
-        (,bytes32 node) = NameEncoder.dnsEncodeName(string.concat(name,".basetest.eth"));
+        (, bytes32 node) = NameEncoder.dnsEncodeName(string.concat(name, ".basetest.eth"));
         Multicallable(L2RESOLVER).multicallWithNodeCheck(node, _buildResolverData(node, testnetAddr, name));
     }
 
-    function _buildResolverData(bytes32 node, address addr, string memory name) internal pure returns (bytes[] memory data) {
+    function _buildResolverData(bytes32 node, address addr, string memory name)
+        internal
+        pure
+        returns (bytes[] memory data)
+    {
         bytes[] memory multicallData = new bytes[](3);
-        multicallData[0] = abi.encodeWithSelector(AddrResolver.setAddr.selector, node, ETH_COINTYPE, _addressToBytes(addr));
-        multicallData[1] = abi.encodeWithSelector(AddrResolver.setAddr.selector, node, BASE_SEPOLIA_COINTYPE, _addressToBytes(addr));
-        multicallData[2] = abi.encodeWithSelector(NameResolver.setName.selector, node, string.concat(name,".basetest.eth"));
+        multicallData[0] =
+            abi.encodeWithSelector(AddrResolver.setAddr.selector, node, ETH_COINTYPE, _addressToBytes(addr));
+        multicallData[1] =
+            abi.encodeWithSelector(AddrResolver.setAddr.selector, node, BASE_SEPOLIA_COINTYPE, _addressToBytes(addr));
+        multicallData[2] =
+            abi.encodeWithSelector(NameResolver.setName.selector, node, string.concat(name, ".basetest.eth"));
         return multicallData;
     }
 
