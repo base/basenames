@@ -59,7 +59,7 @@ contract UpgradeableL2Resolver is
         /// @notice A mapping of operators per owner address. An operator is authorized to make changes to
         ///         all names owned by the `owner`.
         mapping(address owner => mapping(address operator => bool isApproved)) _operatorApprovals;
-        /// @notice A mapping of delegates per owner per name (stored as a node). A delegate that is authorised
+        /// @notice A mapping of delegates per owner per name (stored as a node). A delegate that is authorized
         ///         by an owner for a name may make changes to the name's resolver.
         mapping(address owner => mapping(bytes32 node => mapping(address delegate => bool isApproved))) _tokenApprovals;
     }
@@ -190,7 +190,7 @@ contract UpgradeableL2Resolver is
 
     /// @notice Check to see whether `msg.sender` is authorized to modify records for the specified `node`.
     ///
-    /// @dev Override for `ResolverBase:isAuthorised()`. Used in the context of each inherited resolver "profile".
+    /// @dev Override for `ResolverBase:isAuthorized()`. Used in the context of each inherited resolver "profile".
     ///     Validates that `msg.sender` is one of:
     ///     1. The stored registrarController (for setting records upon registration)
     ///     2  The stored reverseRegistrar (for setting reverse records)
@@ -201,7 +201,7 @@ contract UpgradeableL2Resolver is
     /// @param node The namehashed `node` being authorized.
     ///
     /// @return `true` if `msg.sender` is authorized to modify records for the specified `node`, else `false`.
-    function isAuthorised(bytes32 node) internal view override returns (bool) {
+    function isAuthorized(bytes32 node) internal view override returns (bool) {
         ResolverStorage storage $ = _getResolverStorage();
         if (msg.sender == $.registrarController || msg.sender == $.reverseRegistrar) {
             return true;

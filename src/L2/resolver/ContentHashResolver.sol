@@ -29,7 +29,7 @@ abstract contract ContentHashResolver is IContentHashResolver, ResolverBase {
     ///
     /// @param node The node to update.
     /// @param hash The contenthash to set
-    function setContenthash(bytes32 node, bytes calldata hash) external virtual authorised(node) {
+    function setContenthash(bytes32 node, bytes calldata hash) external virtual authorized(node) {
         _getContentHashResolverStorage().versionable_hashes[_getResolverBaseStorage().recordVersions[node]][node] = hash;
         emit ContenthashChanged(node, hash);
     }

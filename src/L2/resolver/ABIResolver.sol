@@ -33,7 +33,7 @@ abstract contract ABIResolver is IABIResolver, ResolverBase {
     /// @param node The node to update.
     /// @param contentType The content type of the ABI.
     /// @param data The ABI data.
-    function setABI(bytes32 node, uint256 contentType, bytes calldata data) external virtual authorised(node) {
+    function setABI(bytes32 node, uint256 contentType, bytes calldata data) external virtual authorized(node) {
         // Content types must be powers of 2
         if (((contentType - 1) & contentType) != 0) revert InvalidContentType();
 

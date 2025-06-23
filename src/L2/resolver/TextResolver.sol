@@ -28,7 +28,7 @@ abstract contract TextResolver is ITextResolver, ResolverBase {
     /// @param node The node to update.
     /// @param key The key to set.
     /// @param value The text data value to set.
-    function setText(bytes32 node, string calldata key, string calldata value) external virtual authorised(node) {
+    function setText(bytes32 node, string calldata key, string calldata value) external virtual authorized(node) {
         _getTextResolverStorage().versionable_texts[_getResolverBaseStorage().recordVersions[node]][node][key] = value;
         emit TextChanged(node, key, key, value);
     }

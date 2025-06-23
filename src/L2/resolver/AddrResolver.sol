@@ -33,7 +33,7 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
     ///
     /// @param node The node to update.
     /// @param a The address to set.
-    function setAddr(bytes32 node, address a) external virtual authorised(node) {
+    function setAddr(bytes32 node, address a) external virtual authorized(node) {
         setAddr(node, COIN_TYPE_ETH, addressToBytes(a));
     }
 
@@ -57,7 +57,7 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
     /// @param node The ENS node to update.
     /// @param coinType The coinType for this address.
     /// @param a The network-agnostic bytes of the address.
-    function setAddr(bytes32 node, uint256 coinType, bytes memory a) public virtual authorised(node) {
+    function setAddr(bytes32 node, uint256 coinType, bytes memory a) public virtual authorized(node) {
         emit AddressChanged(node, coinType, a);
         if (coinType == COIN_TYPE_ETH) {
             emit AddrChanged(node, bytesToAddress(a));

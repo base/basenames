@@ -56,7 +56,7 @@ abstract contract DNSResolver is IDNSRecordResolver, IDNSZoneResolver, ResolverB
     ///
     /// @param node the namehash of the node for which to set the records
     /// @param data the DNS wire format records to set
-    function setDNSRecords(bytes32 node, bytes calldata data) external virtual authorised(node) {
+    function setDNSRecords(bytes32 node, bytes calldata data) external virtual authorized(node) {
         uint16 resource = 0;
         uint256 offset = 0;
         bytes memory name;
@@ -121,7 +121,7 @@ abstract contract DNSResolver is IDNSRecordResolver, IDNSZoneResolver, ResolverB
     ///
     /// @param node The node to update.
     /// @param hash The zonehash to set.
-    function setZonehash(bytes32 node, bytes calldata hash) external virtual authorised(node) {
+    function setZonehash(bytes32 node, bytes calldata hash) external virtual authorized(node) {
         uint64 currentRecordVersion = _getResolverBaseStorage().recordVersions[node];
         DNSResolverStorage storage $ = _getDNSResolverStorage();
         bytes memory oldhash = $.versionable_zonehashes[currentRecordVersion][node];

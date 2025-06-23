@@ -32,7 +32,7 @@ abstract contract InterfaceResolver is IInterfaceResolver, ResolverBase {
     /// @param node The node to update.
     /// @param interfaceID The EIP-165 interface ID.
     /// @param implementer The address of a contract that implements this interface for this node.
-    function setInterface(bytes32 node, bytes4 interfaceID, address implementer) external virtual authorised(node) {
+    function setInterface(bytes32 node, bytes4 interfaceID, address implementer) external virtual authorized(node) {
         _getInterfaceResolverStorage().versionable_interfaces[_getResolverBaseStorage().recordVersions[node]][node][interfaceID]
         = implementer;
         emit InterfaceChanged(node, interfaceID, implementer);

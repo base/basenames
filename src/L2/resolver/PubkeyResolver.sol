@@ -33,7 +33,7 @@ abstract contract PubkeyResolver is IPubkeyResolver, ResolverBase {
     ///
     /// @param x the X coordinate of the curve point for the public key.
     /// @param y the Y coordinate of the curve point for the public key.
-    function setPubkey(bytes32 node, bytes32 x, bytes32 y) external virtual authorised(node) {
+    function setPubkey(bytes32 node, bytes32 x, bytes32 y) external virtual authorized(node) {
         _getPubkeyResolverStorage().versionable_pubkeys[_getResolverBaseStorage().recordVersions[node]][node] =
             PublicKey(x, y);
         emit PubkeyChanged(node, x, y);

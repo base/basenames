@@ -25,7 +25,7 @@ abstract contract NameResolver is INameResolver, ResolverBase {
     /// @notice Sets the name associated with an ENS node.
     ///
     /// @param node The node to update.
-    function setName(bytes32 node, string calldata newName) external virtual authorised(node) {
+    function setName(bytes32 node, string calldata newName) external virtual authorized(node) {
         _getNameResolver().versionable_names[_getResolverBaseStorage().recordVersions[node]][node] = newName;
         emit NameChanged(node, newName);
     }
