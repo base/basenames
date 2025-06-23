@@ -95,7 +95,7 @@ abstract contract DNSResolver is IDNSRecordResolver, IDNSZoneResolver, ResolverB
     ///
     /// @return The DNS record in wire format if present, otherwise empty.
     function dnsRecord(bytes32 node, bytes32 name, uint16 resource)
-        public
+        external
         view
         virtual
         override
@@ -110,7 +110,7 @@ abstract contract DNSResolver is IDNSRecordResolver, IDNSZoneResolver, ResolverB
     /// @param name The keccak-256 hash of the fully-qualified name for which to fetch the record.
     ///
     /// @return `True` if records are stored for this node + name, else `False`.
-    function hasDNSRecords(bytes32 node, bytes32 name) public view virtual returns (bool) {
+    function hasDNSRecords(bytes32 node, bytes32 name) external view virtual returns (bool) {
         return (
             _getDNSResolverStorage().versionable_nameEntriesCount[_getResolverBaseStorage().recordVersions[node]][node][name]
                 != 0

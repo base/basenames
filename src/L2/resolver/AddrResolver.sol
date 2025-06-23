@@ -27,6 +27,9 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
     /// @notice Ethereum mainnet network-as-cointype.
     uint256 private constant COIN_TYPE_ETH = 60;
 
+    /// @notice Thrown when an invalid bytes length is detected.
+    error InvalidBytesLength();
+
     /// @notice Sets the address associated with an ENS node.
     ///
     /// @dev May only be called by the owner of that node in the ENS registry.
@@ -35,6 +38,20 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
     /// @param a The address to set.
     function setAddr(bytes32 node, address a) external virtual authorized(node) {
         setAddr(node, COIN_TYPE_ETH, addressToBytes(a));
+    }
+
+    /// @notice Set the network or coin-specific address for an ENS `node`.
+    ///
+    /// @param node The ENS node to update.
+    /// @param coinType The coinType for this address.
+    /// @param a The network-agnostic bytes of the address.
+    function setAddr(bytes32 node, uint256 coinType, bytes memory a) public virtual authorized(node) {
+        emit AddressChanged(node, coinType, a);
+        if (coinType == COIN_TYPE_ETH) {
+            emit AddrChanged(node, bytesToAddress(a));
+        }
+        _getAddrResolverStorage().versionable_addresses[_getResolverBaseStorage().recordVersions[node]][node][coinType]
+        = a;
     }
 
     /// @notice Returns the address associated with a specified ENS `node`.
@@ -50,20 +67,6 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
             return payable(0);
         }
         return bytesToAddress(a);
-    }
-
-    /// @notice Set the network or coin-specific address for an ENS `node`.
-    ///
-    /// @param node The ENS node to update.
-    /// @param coinType The coinType for this address.
-    /// @param a The network-agnostic bytes of the address.
-    function setAddr(bytes32 node, uint256 coinType, bytes memory a) public virtual authorized(node) {
-        emit AddressChanged(node, coinType, a);
-        if (coinType == COIN_TYPE_ETH) {
-            emit AddrChanged(node, bytesToAddress(a));
-        }
-        _getAddrResolverStorage().versionable_addresses[_getResolverBaseStorage().recordVersions[node]][node][coinType]
-        = a;
     }
 
     /// @notice Returns the address of the `node` for a specified `coinType`.
@@ -86,7 +89,7 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
 
     /// @notice Helper to convert bytes into an EVM address object.
     function bytesToAddress(bytes memory b) internal pure returns (address payable a) {
-        require(b.length == 20);
+        if(b.length != 20) revert InvalidBytesLength();
         assembly {
             a := div(mload(add(b, 32)), exp(256, 12))
         }

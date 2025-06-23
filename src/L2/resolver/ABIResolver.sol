@@ -44,11 +44,11 @@ abstract contract ABIResolver is IABIResolver, ResolverBase {
 
     /// @notice Returns the ABI associated with an ENS node for a specific content type.
     ///
-    /// @param node The ENS node to query
+    /// @param node The ENS node to query.
     /// @param contentTypes A bitwise OR of the ABI formats accepted by the caller.
     ///
-    /// @return contentType The content type of the return value
-    /// @return data The ABI data
+    /// @return contentType The content type of the return value.
+    /// @return data The ABI data.
     function ABI(bytes32 node, uint256 contentTypes) external view virtual override returns (uint256, bytes memory) {
         mapping(uint256 => bytes) storage abiset =
             _getABIResolverStorage().versionable_abis[_getResolverBaseStorage().recordVersions[node]][node];

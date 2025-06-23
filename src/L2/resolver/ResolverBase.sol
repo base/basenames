@@ -21,13 +21,6 @@ abstract contract ResolverBase is ERC165, IVersionableResolver {
     // keccak256(abi.encode(uint256(keccak256("resolver.base.storage")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant RESOLVER_BASE_LOCATION = 0x421bc1b234e222da5ef3c41832b689b450ae239e8b18cf3c05f5329ae7d99700;
 
-    /// @notice Check whether the caller is authorized to edit records for `node`.
-    ///
-    /// @param node The node to check authorization against.
-    ///
-    /// @return `true` if msg.sender is authorized, else `false`.
-    function isAuthorized(bytes32 node) internal view virtual returns (bool);
-
     /// @notice Decorator for record-write authorization checks.
     modifier authorized(bytes32 node) {
         if (!isAuthorized(node)) revert NotAuthorized(node, msg.sender);
@@ -39,7 +32,7 @@ abstract contract ResolverBase is ERC165, IVersionableResolver {
     /// @dev May only be called by the owner of that node in the ENS registry.
     ///
     /// @param node The node to update.
-    function clearRecords(bytes32 node) public virtual authorized(node) {
+    function clearRecords(bytes32 node) external virtual authorized(node) {
         ResolverBaseStorage storage $ = _getResolverBaseStorage();
         $.recordVersions[node]++;
         emit VersionChanged(node, $.recordVersions[node]);
@@ -58,6 +51,13 @@ abstract contract ResolverBase is ERC165, IVersionableResolver {
     function supportsInterface(bytes4 interfaceID) public view virtual override returns (bool) {
         return interfaceID == type(IVersionableResolver).interfaceId || super.supportsInterface(interfaceID);
     }
+
+    /// @notice Check whether the caller is authorized to edit records for `node`.
+    ///
+    /// @param node The node to check authorization against.
+    ///
+    /// @return `true` if msg.sender is authorized, else `false`.
+    function isAuthorized(bytes32 node) internal view virtual returns (bool);
 
     /// @notice EIP-7201 storage pointer fetch helper.
     function _getResolverBaseStorage() internal pure returns (ResolverBaseStorage storage $) {
