@@ -6,7 +6,8 @@ import {ExtendedResolver} from "ens-contracts/resolvers/profiles/ExtendedResolve
 import {IExtendedResolver} from "ens-contracts/resolvers/profiles/IExtendedResolver.sol";
 import {Initializable} from "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import {Multicallable} from "ens-contracts/resolvers/Multicallable.sol";
-import {Ownable} from "solady/auth/Ownable.sol";
+import {Ownable2StepUpgradeable} from
+    "lib/openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 
 import {ABIResolver} from "./resolver/ABIResolver.sol";
 import {AddrResolver} from "./resolver/AddrResolver.sol";
@@ -32,11 +33,10 @@ contract UpgradeableL2Resolver is
     ContentHashResolver,
     DNSResolver,
     ExtendedResolver,
-    Initializable,
     InterfaceResolver,
     Multicallable,
     NameResolver,
-    Ownable,
+    Ownable2StepUpgradeable,
     PubkeyResolver,
     TextResolver
 {
@@ -125,7 +125,7 @@ contract UpgradeableL2Resolver is
         $.registry = registry_;
         $.registrarController = registrarController_;
         $.reverseRegistrar = reverseRegistrar_;
-        _initializeOwner(owner_);
+        __Ownable_init(owner_);
         IReverseRegistrar(reverseRegistrar_).claim(owner_);
     }
 
