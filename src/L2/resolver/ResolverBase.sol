@@ -9,7 +9,6 @@ import {IVersionableResolver} from "ens-contracts/resolvers/profiles/IVersionabl
 /// @notice Abstract schema with shared functionality used by all resolver profiles.
 ///     Inheriting contracts MUST implement the `isAuthorized` method.
 abstract contract ResolverBase is ERC165, IVersionableResolver {
-    /// @notice Storage struct for Resolver Base
     struct ResolverBaseStorage {
         /// @notice Record version per node.
         mapping(bytes32 node => uint64 version) recordVersions;
