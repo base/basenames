@@ -51,10 +51,10 @@ contract UpgradeableL2Resolver is
     struct ResolverStorage {
         /// @notice The registry contract.
         ENS registry;
-        /// @notice The trusted registrar controller contract.
-        address registrarController;
         /// @notice The reverse registrar contract.
         address reverseRegistrar;
+        /// @notice The permissioned registrar controller contracts.
+        mapping(address controller => bool isApproved) approvedControllers;
         /// @notice A mapping of operators per owner address. An operator is authorized to make changes to
         ///         all names owned by the `owner`.
         mapping(address owner => mapping(address operator => bool isApproved)) _operatorApprovals;
@@ -72,6 +72,9 @@ contract UpgradeableL2Resolver is
 
     /// @notice Thrown when msg.sender tries to set itself as a delegate for one of its names.
     error CantSetSelfAsDelegate();
+
+    /// @notice Thrown when trying to set a contract address to the zero address.
+    error NoZeroAddress();
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                          EVENTS                            */
@@ -92,10 +95,11 @@ contract UpgradeableL2Resolver is
     /// @param approved Whether the `delegate` is approved for the specified `node`.
     event Approved(address owner, bytes32 indexed node, address indexed delegate, bool indexed approved);
 
-    /// @notice Emitted when the owner of this contract updates the Registrar Controller addrress.
+    /// @notice Emitted when a controller address approval status is changed by the `owner`.
     ///
-    /// @param newRegistrarController The address of the new RegistrarController contract.
-    event RegistrarControllerUpdated(address indexed newRegistrarController);
+    /// @param controller The address of the `controller`.
+    /// @param approved The new approval state for the `controller` address.
+    event ControllerApprovalChanged(address indexed controller, bool approved);
 
     /// @notice Emitted when the owner of this contract updates the Reverse Registrar address.
     ///
@@ -122,20 +126,29 @@ contract UpgradeableL2Resolver is
     {
         ResolverStorage storage $ = _getResolverStorage();
         $.registry = registry_;
-        $.registrarController = registrarController_;
+        $.approvedControllers[registrarController_] = true;
         $.reverseRegistrar = reverseRegistrar_;
         __Ownable_init(owner_);
         IReverseRegistrar(reverseRegistrar_).claim(owner_);
     }
 
-    /// @notice Allows the `owner` to set the registrar controller contract address.
+    /// @notice Allows the owner to change the approval status of an address as a controller.
     ///
-    /// @dev Emits `RegistrarControllerUpdated` after setting the `registrarController` address.
+    /// @param controller The address of the controller.
+    /// @param approved Whether the controller has permissions to modify reverse records.
+    function setControllerApproval(address controller, bool approved) external onlyOwner {
+        if (controller == address(0)) revert NoZeroAddress();
+        _getResolverStorage().approvedControllers[controller] = approved;
+        emit ControllerApprovalChanged(controller, approved);
+    }
+
+    /// @notice Fetch whether an address is an approved controller.
     ///
-    /// @param registrarController_ The address of the new RegistrarController contract.
-    function setRegistrarController(address registrarController_) external onlyOwner {
-        _getResolverStorage().registrarController = registrarController_;
-        emit RegistrarControllerUpdated(registrarController_);
+    /// @param controller The address of the controller to query.
+    ///
+    /// @return `true` if `controller` is an approved controller, else `false`.
+    function getControllerApproval(address controller) external view returns (bool) {
+        return _getResolverStorage().approvedControllers[controller];
     }
 
     /// @notice Allows the `owner` to set the reverse registrar contract address.
@@ -144,8 +157,14 @@ contract UpgradeableL2Resolver is
     ///
     /// @param reverseRegistrar_ The address of the new ReverseRegistrar contract.
     function setReverseRegistrar(address reverseRegistrar_) external onlyOwner {
+        if (reverseRegistrar_ == address(0)) revert NoZeroAddress();
         _getResolverStorage().reverseRegistrar = reverseRegistrar_;
         emit ReverseRegistrarUpdated(reverseRegistrar_);
+    }
+
+    /// @notice Returns the address of the reverse registrar contract.
+    function reverseRegistrar() external view returns (address) {
+        return _getResolverStorage().reverseRegistrar;
     }
 
     /// @dev See {IERC1155-setApprovalForAll}.
@@ -154,11 +173,6 @@ contract UpgradeableL2Resolver is
 
         _getResolverStorage()._operatorApprovals[msg.sender][operator] = approved;
         emit ApprovalForAll(msg.sender, operator, approved);
-    }
-
-    /// @dev See {IERC1155-isApprovedForAll}.
-    function isApprovedForAll(address account, address operator) public view returns (bool) {
-        return _getResolverStorage()._operatorApprovals[account][operator];
     }
 
     /// @notice Modify the permissions for a specified `delegate` for the specified `node`.
@@ -174,6 +188,11 @@ contract UpgradeableL2Resolver is
 
         _getResolverStorage()._tokenApprovals[msg.sender][node][delegate] = approved;
         emit Approved(msg.sender, node, delegate, approved);
+    }
+
+    /// @dev See {IERC1155-isApprovedForAll}.
+    function isApprovedForAll(address account, address operator) public view returns (bool) {
+        return _getResolverStorage()._operatorApprovals[account][operator];
     }
 
     /// @notice Check to see if the `delegate` has been approved by the `owner` for the `node`.
@@ -202,7 +221,7 @@ contract UpgradeableL2Resolver is
     /// @return `true` if `msg.sender` is authorized to modify records for the specified `node`, else `false`.
     function isAuthorized(bytes32 node) internal view override returns (bool) {
         ResolverStorage storage $ = _getResolverStorage();
-        if (msg.sender == $.registrarController || msg.sender == $.reverseRegistrar) {
+        if ($.approvedControllers[msg.sender] || msg.sender == $.reverseRegistrar) {
             return true;
         }
         address owner = $.registry.owner(node);
@@ -234,16 +253,6 @@ contract UpgradeableL2Resolver is
         returns (bool)
     {
         return (interfaceID == type(IExtendedResolver).interfaceId || super.supportsInterface(interfaceID));
-    }
-
-    /// @notice Returns the address of the trusted registrar controller contract.
-    function registrarController() external view returns (address) {
-        return _getResolverStorage().registrarController;
-    }
-
-    /// @notice Returns the address of the reverse registrar contract.
-    function reverseRegistrar() external view returns (address) {
-        return _getResolverStorage().reverseRegistrar;
     }
 
     /// @notice EIP-7201 storage pointer fetch helper.
