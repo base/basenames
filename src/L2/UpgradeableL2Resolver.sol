@@ -4,7 +4,6 @@ pragma solidity ^0.8.23;
 import {ENS} from "ens-contracts/registry/ENS.sol";
 import {ExtendedResolver} from "ens-contracts/resolvers/profiles/ExtendedResolver.sol";
 import {IExtendedResolver} from "ens-contracts/resolvers/profiles/IExtendedResolver.sol";
-import {Initializable} from "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import {Multicallable} from "ens-contracts/resolvers/Multicallable.sol";
 import {Ownable2StepUpgradeable} from
     "lib/openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
