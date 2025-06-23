@@ -10,7 +10,7 @@ import {ResolverBase} from "./ResolverBase.sol";
 /// @notice Adaptation of the ENS PubkeyResolver.sol profile contract, with EIP-7201 storage compliance.
 ///         https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/profiles/PubkeyResolver.sol
 ///
-/// @author Coinbase (https://github.com/base-org/basenames)
+/// @author Coinbase (https://github.com/base/basenames)
 abstract contract PubkeyResolver is IPubkeyResolver, ResolverBase {
     /// @notice Tuple containing the x and y coordinates of a public key.
     struct PublicKey {

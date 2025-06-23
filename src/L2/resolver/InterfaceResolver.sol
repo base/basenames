@@ -13,7 +13,7 @@ import {ResolverBase} from "./ResolverBase.sol";
 ///         EIP-7201 storage compliance.
 ///         https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/profiles/InterfaceResolver.sol
 ///
-/// @author Coinbase (https://github.com/base-org/basenames)
+/// @author Coinbase (https://github.com/base/basenames)
 abstract contract InterfaceResolver is IInterfaceResolver, ResolverBase {
     struct InterfaceResolverStorage {
         /// @notice Interface implementer address by interface id, node and version.

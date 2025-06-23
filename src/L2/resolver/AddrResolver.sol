@@ -12,7 +12,7 @@ import {ResolverBase} from "./ResolverBase.sol";
 ///         EIP-7201 storage compliance.
 ///         https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/profiles/AddrResolver.sol
 ///
-/// @author Coinbase (https://github.com/base-org/basenames)
+/// @author Coinbase (https://github.com/base/basenames)
 abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase {
     struct AddrResolverStorage {
         /// @notice Address record per cointype, node and version.

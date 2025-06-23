@@ -25,7 +25,7 @@ import {IReverseRegistrar} from "src/L2/interface/IReverseRegistrar.sol";
 ///         Public Resolver: https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/PublicResolver.sol
 ///         Extended Resolver: https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/profiles/ExtendedResolver.sol
 ///
-/// @author Coinbase (https://github.com/base-org/basenames)
+/// @author Coinbase (https://github.com/base/basenames)
 contract UpgradeableL2Resolver is
     ABIResolver,
     AddrResolver,

@@ -13,7 +13,7 @@ import {ResolverBase} from "./ResolverBase.sol";
 ///         with EIP-7201 storage compliance.
 ///         https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/profiles/DNSResolver.sol
 ///
-/// @author Coinbase (https://github.com/base-org/basenames)
+/// @author Coinbase (https://github.com/base/basenames)
 abstract contract DNSResolver is IDNSRecordResolver, IDNSZoneResolver, ResolverBase {
     using RRUtils for *;
     using BytesUtils for bytes;

@@ -11,7 +11,7 @@ import {ResolverBase} from "./ResolverBase.sol";
 ///         EIP-7201 storage compliance.
 ///         https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/profiles/NameResolver.sol
 ///
-/// @author Coinbase (https://github.com/base-org/basenames)
+/// @author Coinbase (https://github.com/base/basenames)
 abstract contract NameResolver is INameResolver, ResolverBase {
     struct NameResolverStorage {
         /// @notice Names by node and version.
