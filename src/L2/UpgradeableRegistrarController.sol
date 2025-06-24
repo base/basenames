@@ -693,7 +693,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         IMulticallable(resolverAddress).multicallWithNodeCheck(nodehash, data);
     }
 
-    /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver.
+    /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver`.
     ///
     /// @param name The specified name.
     /// @param resolver The resolver to set the reverse record on.
