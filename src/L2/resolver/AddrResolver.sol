@@ -89,7 +89,7 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
 
     /// @notice Helper to convert bytes into an EVM address object.
     function bytesToAddress(bytes memory b) internal pure returns (address payable a) {
-        if(b.length != 20) revert InvalidBytesLength();
+        if (b.length != 20) revert InvalidBytesLength();
         assembly {
             a := div(mload(add(b, 32)), exp(256, 12))
         }
