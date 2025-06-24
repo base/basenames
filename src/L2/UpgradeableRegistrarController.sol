@@ -13,10 +13,10 @@ import {IBaseRegistrar} from "./interface/IBaseRegistrar.sol";
 import {IDiscountValidator} from "./interface/IDiscountValidator.sol";
 import {IL2ReverseRegistrar} from "./interface/IL2ReverseRegistrar.sol";
 import {IPriceOracle} from "./interface/IPriceOracle.sol";
-import {IReverseRegistrarV2} from "./interface/IReverseRegistrarV2.sol";
+import {IReverseRegistrar} from "./interface/IReverseRegistrar.sol";
 import {IRegistrarController} from "./interface/IRegistrarController.sol";
 
-/// @title Upgradeable Registrar Controller
+/// @title Upgradeable Registrar Controller Version 1
 ///
 /// @notice A permissioned controller for managing registering and renewing names against the `BaseRegistrar` contract.
 ///         This contract enables a `discountedRegister` flow which is validated by calling external implementations
@@ -32,8 +32,24 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     using SafeERC20 for IERC20;
     using EnumerableSetLib for EnumerableSetLib.Bytes32Set;
 
-    /// @notice The details of a registration request.
+    /// @notice The details of a legacy registration request.
     struct RegisterRequest {
+        /// @dev The name being registered.
+        string name;
+        /// @dev The address of the owner for the name.
+        address owner;
+        /// @dev The duration of the registration in seconds.
+        uint256 duration;
+        /// @dev The address of the resolver to set for this name.
+        address resolver;
+        /// @dev Multicallable data bytes for setting records in the associated resolver upon registration.
+        bytes[] data;
+        /// @dev Bool to decide whether to set this name as the "primary" name for the `owner`.
+        bool reverseRecord;
+    }
+
+    /// @notice The details of a modern registration request, compatible with ENSIP-19.
+    struct RegisterRequestV2 {
         /// @dev The name being registered.
         string name;
         /// @dev The address of the owner for the name.
@@ -74,7 +90,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         /// @notice The implementation of the pricing oracle.
         IPriceOracle prices;
         /// @notice The implementation of the Reverse Registrar contract.
-        IReverseRegistrarV2 reverseRegistrar;
+        IReverseRegistrar reverseRegistrar;
         /// @notice The address of the L2 Reverse Registrar.
         address l2ReverseRegistrar;
         /// @notice An enumerable set for tracking which discounts are currently active.
@@ -232,16 +248,19 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///     2. That the name is `valid()`
     ///     3. That the registration `duration` is sufficiently long
     ///
-    /// @param request The RegisterRequest that is being validated.
-    modifier validRegistration(RegisterRequest calldata request) {
-        if (request.data.length > 0 && request.resolver == address(0)) {
+    /// @param data The resolver data.
+    /// @param resolver The resolver data.
+    /// @param name The name that is being validated.
+    /// @param duration The duration of the registration.
+    modifier validRegistration(bytes[] memory data, address resolver, string memory name, uint256 duration) {
+        if (data.length > 0 && resolver == address(0)) {
             revert ResolverRequiredWhenDataSupplied();
         }
-        if (!valid(request.name)) {
-            revert NameNotValid(request.name);
+        if (!valid(name)) {
+            revert NameNotValid(name);
         }
-        if (request.duration < MIN_REGISTRATION_DURATION) {
-            revert DurationTooShort(request.duration);
+        if (duration < MIN_REGISTRATION_DURATION) {
+            revert DurationTooShort(duration);
         }
         _;
     }
@@ -297,7 +316,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     function initialize(
         IBaseRegistrar base_,
         IPriceOracle prices_,
-        IReverseRegistrarV2 reverseRegistrar_,
+        IReverseRegistrar reverseRegistrar_,
         address owner_,
         bytes32 rootNode_,
         string memory rootName_,
@@ -351,7 +370,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @dev Emits `ReverseRegistrarUpdated` after setting the `reverseRegistrar` contract.
     ///
     /// @param reverse_ The new reverse registrar contract.
-    function setReverseRegistrar(IReverseRegistrarV2 reverse_) external onlyOwner {
+    function setReverseRegistrar(IReverseRegistrar reverse_) external onlyOwner {
         if (address(reverse_) == address(0)) revert ZeroAddress();
         _getURCStorage().reverseRegistrar = reverse_;
         emit ReverseRegistrarUpdated(address(reverse_));
@@ -421,7 +440,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @notice Fetches the Reverse Registrar from storage.
     ///
     /// @return The stored Reverse Registrar.
-    function reverseRegistrar() external view returns (IReverseRegistrarV2) {
+    function reverseRegistrar() external view returns (IReverseRegistrar) {
         return _getURCStorage().reverseRegistrar;
     }
 
@@ -501,18 +520,42 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         price = (price > discount) ? price - discount : 0;
     }
 
-    /// @notice Enables a caller to register a name.
+    /// @notice Enables a caller to register a name using the legacy registration data.
     ///
     /// @dev Validates the registration details via the `validRegistration` modifier.
     ///     This `payable` method must receive appropriate `msg.value` to pass `_validatePayment()`.
     ///
     /// @param request The `RegisterRequest` struct containing the details for the registration.
-    function register(RegisterRequest calldata request) external payable validRegistration(request) {
+    function register(RegisterRequest memory request)
+        external
+        payable
+        validRegistration(request.data, request.resolver, request.name, request.duration)
+    {
         uint256 price = registerPrice(request.name, request.duration);
 
         _validatePayment(price);
 
         _register(request);
+
+        _refundExcessEth(price);
+    }
+
+    /// @notice Enables a caller to register a name using the V2 registration data.
+    ///
+    /// @dev Follows the steps of `register(RegisterRequest)` and also sets reverse record data
+    ///     in the ENS L2ReverseRegistrar contract. 
+    ///
+    /// @param requestv2 The `RegisterRequestV2` struct containing the details for the registration.
+    function register(RegisterRequestV2 calldata requestv2)
+        external
+        payable
+        validRegistration(requestv2.data, requestv2.resolver, requestv2.name, requestv2.duration)
+    {
+        uint256 price = registerPrice(requestv2.name, requestv2.duration);
+
+        _validatePayment(price);
+
+        _registerV2(requestv2);
 
         _refundExcessEth(price);
     }
@@ -532,7 +575,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         external
         payable
         validDiscount(discountKey, validationData)
-        validRegistration(request)
+        validRegistration(request.data, request.resolver, request.name, request.duration)
     {
         URCStorage storage $ = _getURCStorage();
 
@@ -589,7 +632,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///     Emits `NameRegistered` upon successful registration.
     ///
     /// @param request The `RegisterRequest` struct containing the details for the registration.
-    function _register(RegisterRequest calldata request) internal {
+    function _register(RegisterRequest memory request) internal {
         bytes32 label = _getLabelFromName(request.name);
         uint256 expires = _getURCStorage().base.registerWithRecord({
             id: uint256(label),
@@ -604,10 +647,25 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         }
 
         if (request.reverseRecord) {
-            _setReverseRecord(request.name, request.signatureExpiry, request.coinTypes, request.signature);
+            _setLegacyReverseRecord(request.name, request.resolver, msg.sender);
         }
 
         emit NameRegistered(request.name, label, request.owner, expires);
+    }
+
+    function _registerV2(RegisterRequestV2 calldata requestv2) internal {
+        _register(
+            RegisterRequest({
+                name: requestv2.name,
+                owner: requestv2.owner,
+                duration: requestv2.duration,
+                resolver: requestv2.resolver,
+                data: requestv2.data,
+                reverseRecord: requestv2.reverseRecord
+            })
+        );    
+        
+        _setReverseRecord(msg.sender, requestv2.signatureExpiry, requestv2.name, requestv2.coinTypes, requestv2.signature);
     }
 
     /// @notice Refunds any remaining `msg.value` after processing a registration or renewal given `price`.
@@ -630,21 +688,30 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @param resolverAddress The address of the resolver to set records on.
     /// @param label The keccak256 hash for the specified name.
     /// @param data  The abi encoded calldata records that will be used in the multicallable resolver.
-    function _setRecords(address resolverAddress, bytes32 label, bytes[] calldata data) internal {
+    function _setRecords(address resolverAddress, bytes32 label, bytes[] memory data) internal {
         bytes32 nodehash = keccak256(abi.encodePacked(_getURCStorage().rootNode, label));
         IMulticallable(resolverAddress).multicallWithNodeCheck(nodehash, data);
     }
 
-    /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver`.
+    /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver.
     ///
     /// @param name The specified name.
-    /// @param expiry The signature expiry timestamp.
-    /// @param coinTypes The array of coinTypes representing networks that are valid for replaying this transaction.
-    /// @param signature The ECDSA signature bytes.
-    function _setReverseRecord(string memory name, uint256 expiry, uint256[] memory coinTypes, bytes memory signature)
-        internal
-    {
-        _getURCStorage().reverseRegistrar.setNameForAddrWithSignature(msg.sender, expiry, name, coinTypes, signature);
+    /// @param resolver The resolver to set the reverse record on.
+    /// @param owner  The owner of the reverse record.
+    function _setLegacyReverseRecord(string memory name, address resolver, address owner) internal {
+        _getURCStorage().reverseRegistrar.setNameForAddr(owner, owner, resolver, name);
+    }
+
+    function _setReverseRecord(
+        address addr,
+        uint256 signatureExpiry,
+        string memory name,
+        uint256[] memory coinTypes,
+        bytes memory signature
+    ) internal {
+        IL2ReverseRegistrar(_getURCStorage().l2ReverseRegistrar).setNameForAddrWithSignature(
+            addr, signatureExpiry, name, coinTypes, signature
+        );
     }
 
     /// @notice Helper method for updating the `activeDiscounts` enumerable set.
