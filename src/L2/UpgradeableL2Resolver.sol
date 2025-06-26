@@ -91,7 +91,7 @@ contract UpgradeableL2Resolver is
     ///
     /// @param owner The address of the owner of the name.
     /// @param node The namehash of the name.
-    /// @param delegate The address of the operator for the specified `node`.
+    /// @param delegate The address of the delegate for the specified `node`.
     /// @param approved Whether the `delegate` is approved for the specified `node`.
     event Approved(address owner, bytes32 indexed node, address indexed delegate, bool indexed approved);
 
