@@ -23,7 +23,7 @@ contract MigrationController is Ownable2Step {
     uint256 public immutable coinType;
 
     /// @notice The legacy Basenames l2Resolver for setting Name resolution records.
-    address public l2Resolver;
+    address public immutable l2Resolver;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        IMPLEMENTATION                      */
