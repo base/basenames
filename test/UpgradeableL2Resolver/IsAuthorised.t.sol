@@ -36,7 +36,7 @@ contract IsAuthorised is UpgradeableL2ResolverBase {
         assertEq(resolver.addr(node), user);
     }
 
-    function test_returnsTrue_ifSenderIOperatorOfNode(address operator) public notProxyAdmin(operator) {
+    function test_returnsTrue_ifSenderIsOperatorOfNode(address operator) public notProxyAdmin(operator) {
         vm.assume(operator != user);
         vm.prank(owner);
         registry.setSubnodeOwner(BASE_ETH_NODE, label, user);
