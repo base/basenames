@@ -37,7 +37,6 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
         admin = makeAddr("admin");
 
         l2ReverseRegistrar = new MockL2ReverseRegistrar();
-        reverseRegistrarv2 = new MockReverseRegistrarV2();
 
         exponentialPremiumPriceOracle = new ExponentialPremiumPriceOracle(
             _getBasePrices(), EXPIRY_AUCTION_START_PRICE, EXPIRY_AUCTION_DURATION_DAYS
@@ -47,7 +46,7 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
             UpgradeableRegistrarController.initialize.selector,
             baseRegistrar,
             exponentialPremiumPriceOracle,
-            reverseRegistrarv2,
+            reverseRegistrar,
             owner,
             BASE_ETH_NODE,
             ".base.eth",
