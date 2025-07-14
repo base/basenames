@@ -572,6 +572,26 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         emit NameRenewed(name, label, expires);
     }
 
+    /// @notice Externally callable reverse record setter.
+    ///
+    /// @dev For use by clients wishing to maintain backwards compatibility while migrating to full
+    ///     ENSIP-19 compliance.
+    ///
+    /// @param name The name that will be set as the primary for msg.sender.
+    /// @param resolver The address of the NameResolver compliant resolver for storing legacy records.
+    /// @param signatureExpiry The signature expiry timestamp.
+    /// @param coinTypes The array of coinTypes for replayable reverse record setting.
+    /// @param signature The signature bytes.
+    function setReverseRecord(
+        string calldata name,
+        address resolver,
+        uint256 signatureExpiry,
+        uint256[] calldata coinTypes,
+        bytes calldata signature
+    ) external {
+        _setReverseRecord(name, resolver, signatureExpiry, coinTypes, signature);
+    }
+
     /// @notice Internal helper for validating ETH payments
     ///
     /// @dev Emits `ETHPaymentProcessed` after validating the payment.
@@ -604,8 +624,9 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         }
 
         if (request.reverseRecord) {
-            _setLegacyReverseRecord(request.name, request.resolver, msg.sender);
-            _setReverseRecord(msg.sender, request.signatureExpiry, request.name, request.coinTypes, request.signature);
+            _setReverseRecord(
+                request.name, request.resolver, request.signatureExpiry, request.coinTypes, request.signature
+            );
         }
 
         emit NameRegistered(request.name, label, request.owner, expires);
@@ -636,6 +657,30 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         IMulticallable(resolverAddress).multicallWithNodeCheck(nodehash, data);
     }
 
+    /// @notice Internal helper for setting reverse records.
+    ///
+    /// @dev First sets the reverse record according to the legacy path via ReverseRegistrar. Then
+    ///     sets the reverse record according to the ENSIP-19 compliant path by calling ENS's
+    ///     L2ReverseRegistrar contract.
+    ///
+    /// @param name The name that will be set as the primary for msg.sender.
+    /// @param resolver The address of the NameResolver compliant resolver for storing legacy records.
+    /// @param signatureExpiry The signature expiry timestamp.
+    /// @param coinTypes The array of cointypes for replayable reverse record setting.
+    /// @param signature The signature bytes.
+    function _setReverseRecord(
+        string calldata name,
+        address resolver,
+        uint256 signatureExpiry,
+        uint256[] calldata coinTypes,
+        bytes calldata signature
+    ) internal {
+        _setLegacyReverseRecord(name, resolver, msg.sender);
+        IL2ReverseRegistrar(_getURCStorage().l2ReverseRegistrar).setNameForAddrWithSignature(
+            msg.sender, signatureExpiry, name, coinTypes, signature
+        );
+    }
+
     /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver`.
     ///
     /// @param name The specified name.
@@ -643,18 +688,6 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @param owner  The owner of the reverse record.
     function _setLegacyReverseRecord(string memory name, address resolver, address owner) internal {
         _getURCStorage().reverseRegistrar.setNameForAddr(owner, owner, resolver, name);
-    }
-
-    function _setReverseRecord(
-        address addr,
-        uint256 signatureExpiry,
-        string memory name,
-        uint256[] memory coinTypes,
-        bytes memory signature
-    ) internal {
-        IL2ReverseRegistrar(_getURCStorage().l2ReverseRegistrar).setNameForAddrWithSignature(
-            addr, signatureExpiry, name, coinTypes, signature
-        );
     }
 
     /// @notice Helper method for updating the `activeDiscounts` enumerable set.
