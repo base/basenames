@@ -507,11 +507,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///     This `payable` method must receive appropriate `msg.value` to pass `_validatePayment()`.
     ///
     /// @param request The `RegisterRequest` struct containing the details for the registration.
-    function register(RegisterRequest memory request)
-        external
-        payable
-        validRegistration(request)
-    {
+    function register(RegisterRequest memory request) external payable validRegistration(request) {
         uint256 price = registerPrice(request.name, request.duration);
 
         _validatePayment(price);

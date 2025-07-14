@@ -17,7 +17,7 @@ import {MockL2ReverseRegistrar} from "test/mocks/MockL2ReverseRegistrar.sol";
 import {MockNameWrapper} from "test/mocks/MockNameWrapper.sol";
 import {MockPriceOracle} from "test/mocks/MockPriceOracle.sol";
 import {MockPublicResolver} from "test/mocks/MockPublicResolver.sol";
-import {MockReverseRegistrarV2} from "test/mocks/MockReverseRegistrarV2.sol";
+import {MockReverseRegistrar} from "test/mocks/MockReverseRegistrar.sol";
 import {MockRegistrarController} from "test/mocks/MockRegistrarController.sol";
 import {BASE_ETH_NODE, REVERSE_NODE} from "src/util/Constants.sol";
 import {ERC1967Utils} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Utils.sol";
@@ -30,7 +30,7 @@ contract UpgradeableRegistrarControllerBase is Test {
     TransparentUpgradeableProxy public proxy;
 
     MockBaseRegistrar public base;
-    MockReverseRegistrarV2 public reverse;
+    MockReverseRegistrar public reverse;
     MockPriceOracle public prices;
     Registry public registry;
     MockPublicResolver public resolver;
@@ -57,7 +57,7 @@ contract UpgradeableRegistrarControllerBase is Test {
 
     function setUp() public {
         base = new MockBaseRegistrar();
-        reverse = new MockReverseRegistrarV2();
+        reverse = new MockReverseRegistrar();
         prices = new MockPriceOracle();
         registry = new Registry(owner);
         resolver = new MockPublicResolver();

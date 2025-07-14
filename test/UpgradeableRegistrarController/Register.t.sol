@@ -69,6 +69,7 @@ contract Register is UpgradeableRegistrarControllerBase {
         bytes memory retByte = resolver.firstBytes();
         assertEq(keccak256(retByte), keccak256(request.data[0]));
         assertTrue(reverse.hasClaimed(user));
+        assertTrue(l2ReverseRegistrar.hasClaimed());
     }
 
     function test_sendsARefund_ifUserOverpayed() public {

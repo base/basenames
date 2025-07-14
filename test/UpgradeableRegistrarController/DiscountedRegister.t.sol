@@ -106,6 +106,7 @@ contract DiscountedRegister is UpgradeableRegistrarControllerBase {
         bytes memory retByte = resolver.firstBytes();
         assertEq(keccak256(retByte), keccak256(request.data[0]));
         assertTrue(reverse.hasClaimed(user));
+        assertTrue(l2ReverseRegistrar.hasClaimed());
         address[] memory addrs = new address[](1);
         addrs[0] = user;
         assertTrue(controller.hasRegisteredWithDiscount(addrs));
