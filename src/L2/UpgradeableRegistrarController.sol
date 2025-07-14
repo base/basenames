@@ -232,19 +232,16 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///     2. That the name is `valid()`
     ///     3. That the registration `duration` is sufficiently long
     ///
-    /// @param data The resolver data.
-    /// @param resolver The resolver data.
-    /// @param name The name that is being validated.
-    /// @param duration The duration of the registration.
-    modifier validRegistration(bytes[] memory data, address resolver, string memory name, uint256 duration) {
-        if (data.length > 0 && resolver == address(0)) {
+    /// @param request The registration request.
+    modifier validRegistration(RegisterRequest memory request) {
+        if (request.data.length > 0 && request.resolver == address(0)) {
             revert ResolverRequiredWhenDataSupplied();
         }
-        if (!valid(name)) {
-            revert NameNotValid(name);
+        if (!valid(request.name)) {
+            revert NameNotValid(request.name);
         }
-        if (duration < MIN_REGISTRATION_DURATION) {
-            revert DurationTooShort(duration);
+        if (request.duration < MIN_REGISTRATION_DURATION) {
+            revert DurationTooShort(request.duration);
         }
         _;
     }
@@ -513,7 +510,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     function register(RegisterRequest memory request)
         external
         payable
-        validRegistration(request.data, request.resolver, request.name, request.duration)
+        validRegistration(request)
     {
         uint256 price = registerPrice(request.name, request.duration);
 
@@ -539,7 +536,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         external
         payable
         validDiscount(discountKey, validationData)
-        validRegistration(request.data, request.resolver, request.name, request.duration)
+        validRegistration(request)
     {
         URCStorage storage $ = _getURCStorage();
 
