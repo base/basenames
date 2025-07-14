@@ -32,24 +32,8 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     using SafeERC20 for IERC20;
     using EnumerableSetLib for EnumerableSetLib.Bytes32Set;
 
-    /// @notice The details of a legacy registration request.
-    struct RegisterRequest {
-        /// @dev The name being registered.
-        string name;
-        /// @dev The address of the owner for the name.
-        address owner;
-        /// @dev The duration of the registration in seconds.
-        uint256 duration;
-        /// @dev The address of the resolver to set for this name.
-        address resolver;
-        /// @dev Multicallable data bytes for setting records in the associated resolver upon registration.
-        bytes[] data;
-        /// @dev Bool to decide whether to set this name as the "primary" name for the `owner`.
-        bool reverseRecord;
-    }
-
     /// @notice The details of a modern registration request, compatible with ENSIP-19.
-    struct RegisterRequestV2 {
+    struct RegisterRequest {
         /// @dev The name being registered.
         string name;
         /// @dev The address of the owner for the name.
@@ -540,26 +524,6 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         _refundExcessEth(price);
     }
 
-    /// @notice Enables a caller to register a name using the V2 registration data.
-    ///
-    /// @dev Follows the steps of `register(RegisterRequest)` and also sets reverse record data
-    ///     in the ENS L2ReverseRegistrar contract. 
-    ///
-    /// @param requestv2 The `RegisterRequestV2` struct containing the details for the registration.
-    function register(RegisterRequestV2 calldata requestv2)
-        external
-        payable
-        validRegistration(requestv2.data, requestv2.resolver, requestv2.name, requestv2.duration)
-    {
-        uint256 price = registerPrice(requestv2.name, requestv2.duration);
-
-        _validatePayment(price);
-
-        _registerV2(requestv2);
-
-        _refundExcessEth(price);
-    }
-
     /// @notice Enables a caller to register a name and apply a discount.
     ///
     /// @dev In addition to the validation performed in a `register` request, this method additionally validates
@@ -648,24 +612,10 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
 
         if (request.reverseRecord) {
             _setLegacyReverseRecord(request.name, request.resolver, msg.sender);
+            _setReverseRecord(msg.sender, request.signatureExpiry, request.name, request.coinTypes, request.signature);
         }
 
         emit NameRegistered(request.name, label, request.owner, expires);
-    }
-
-    function _registerV2(RegisterRequestV2 calldata requestv2) internal {
-        _register(
-            RegisterRequest({
-                name: requestv2.name,
-                owner: requestv2.owner,
-                duration: requestv2.duration,
-                resolver: requestv2.resolver,
-                data: requestv2.data,
-                reverseRecord: requestv2.reverseRecord
-            })
-        );    
-        
-        _setReverseRecord(msg.sender, requestv2.signatureExpiry, requestv2.name, requestv2.coinTypes, requestv2.signature);
     }
 
     /// @notice Refunds any remaining `msg.value` after processing a registration or renewal given `price`.
