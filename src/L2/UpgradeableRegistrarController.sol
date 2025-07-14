@@ -507,7 +507,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///     This `payable` method must receive appropriate `msg.value` to pass `_validatePayment()`.
     ///
     /// @param request The `RegisterRequest` struct containing the details for the registration.
-    function register(RegisterRequest memory request) external payable validRegistration(request) {
+    function register(RegisterRequest calldata request) external payable validRegistration(request) {
         uint256 price = registerPrice(request.name, request.duration);
 
         _validatePayment(price);
@@ -589,7 +589,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///     Emits `NameRegistered` upon successful registration.
     ///
     /// @param request The `RegisterRequest` struct containing the details for the registration.
-    function _register(RegisterRequest memory request) internal {
+    function _register(RegisterRequest calldata request) internal {
         bytes32 label = _getLabelFromName(request.name);
         uint256 expires = _getURCStorage().base.registerWithRecord({
             id: uint256(label),
@@ -631,7 +631,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @param resolverAddress The address of the resolver to set records on.
     /// @param label The keccak256 hash for the specified name.
     /// @param data  The abi encoded calldata records that will be used in the multicallable resolver.
-    function _setRecords(address resolverAddress, bytes32 label, bytes[] memory data) internal {
+    function _setRecords(address resolverAddress, bytes32 label, bytes[] calldata data) internal {
         bytes32 nodehash = keccak256(abi.encodePacked(_getURCStorage().rootNode, label));
         IMulticallable(resolverAddress).multicallWithNodeCheck(nodehash, data);
     }
