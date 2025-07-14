@@ -232,8 +232,8 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///     2. That the name is `valid()`
     ///     3. That the registration `duration` is sufficiently long
     ///
-    /// @param request The registration request.
-    modifier validRegistration(RegisterRequest memory request) {
+    /// @param request The RegisterRequest that is being validated.
+    modifier validRegistration(RegisterRequest calldata request) {
         if (request.data.length > 0 && request.resolver == address(0)) {
             revert ResolverRequiredWhenDataSupplied();
         }
