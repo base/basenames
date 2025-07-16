@@ -44,8 +44,9 @@ contract MigrationController is Ownable2Step {
     ///     If any of these checks fails, we skip this node and continue.
     ///
     /// @param nodes The array of nodes for which records will be set.
-    function setBaseForwardAddr(bytes32[] memory nodes) public onlyOwner {
-        for (uint256 i; i < nodes.length; i++) {
+    function setBaseForwardAddr(bytes32[] calldata nodes) public onlyOwner {
+        uint256 length = nodes.length;
+        for (uint256 i; i < length; i++) {
             bytes32 _node = nodes[i];
 
             // Get the resolver address for the node and check that it is our public resolver.
