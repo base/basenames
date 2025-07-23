@@ -660,8 +660,8 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @notice Internal helper for setting reverse records.
     ///
     /// @dev First sets the reverse record according to the legacy path via ReverseRegistrar. Then
-    ///     sets the reverse record according to the ENSIP-19 compliant path by calling ENS's
-    ///     L2ReverseRegistrar contract.
+    ///     if the data is populated, sets the reverse record according to the ENSIP-19 compliant path 
+    ///     by calling ENS's L2ReverseRegistrar contract.
     ///
     /// @param name The name that will be set as the primary for msg.sender.
     /// @param resolver The address of the NameResolver compliant resolver for storing legacy records.
@@ -676,9 +676,12 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         bytes calldata signature
     ) internal {
         _setLegacyReverseRecord(name, resolver, msg.sender);
-        IL2ReverseRegistrar(_getURCStorage().l2ReverseRegistrar).setNameForAddrWithSignature(
-            msg.sender, signatureExpiry, name, coinTypes, signature
-        );
+        /// Skip L2ReverseRegistrar primary name setting when requisite data is not populated. 
+        if(signatureExpiry != 0 && coinTypes.length > 0 && signature.length > 0) {
+            IL2ReverseRegistrar(_getURCStorage().l2ReverseRegistrar).setNameForAddrWithSignature(
+                msg.sender, signatureExpiry, name, coinTypes, signature
+            );
+        }
     }
 
     /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver`.
