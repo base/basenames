@@ -49,7 +49,7 @@ contract Register is UpgradeableRegistrarControllerBase {
         controller.register{value: price - 1}(_getDefaultRegisterRequest());
     }
 
-    function test_registersSuccessfully() public {
+    function test_registersSuccessfully_withoutSignatureData() public {
         vm.deal(user, 1 ether);
         UpgradeableRegistrarController.RegisterRequest memory request = _getDefaultRegisterRequest();
 
@@ -57,6 +57,32 @@ contract Register is UpgradeableRegistrarControllerBase {
         uint256 expires = block.timestamp + request.duration;
         base.setNameExpires(uint256(nameLabel), expires);
         uint256 price = controller.registerPrice(request.name, request.duration);
+
+        vm.expectEmit(address(controller));
+        emit UpgradeableRegistrarController.ETHPaymentProcessed(user, price);
+        vm.expectEmit(address(controller));
+        emit UpgradeableRegistrarController.NameRegistered(request.name, nameLabel, user, expires);
+
+        vm.prank(user);
+        controller.register{value: price}(request);
+
+        bytes memory retByte = resolver.firstBytes();
+        assertEq(keccak256(retByte), keccak256(request.data[0]));
+        assertTrue(reverse.hasClaimed(user));
+        assertFalse(l2ReverseRegistrar.hasClaimed());
+    }
+
+    function test_registersSuccessfully_withSignatureData() public {
+        vm.deal(user, 1 ether);
+        UpgradeableRegistrarController.RegisterRequest memory request = _getDefaultRegisterRequest();
+
+        base.setAvailable(uint256(nameLabel), true);
+        uint256 expires = block.timestamp + request.duration;
+        base.setNameExpires(uint256(nameLabel), expires);
+        uint256 price = controller.registerPrice(request.name, request.duration);
+
+        request.signatureExpiry = block.timestamp;
+        request.signature = bytes("notempty");
 
         vm.expectEmit(address(controller));
         emit UpgradeableRegistrarController.ETHPaymentProcessed(user, price);
