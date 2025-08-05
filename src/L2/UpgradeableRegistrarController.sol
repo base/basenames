@@ -294,7 +294,8 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @param rootNode_ The node for which this registrar manages registrations.
     /// @param rootName_ The name of the root node which this registrar manages.
     /// @param paymentReceiver_ The address of the fee collector.
-    /// @param legacyRegistrarController_ the address of the RegistrarController contract.
+    /// @param legacyRegistrarController_ The address of the RegistrarController contract.
+    /// @param legacyL2Resolver_ The address of the legacy resolver for storing reverse records.
     /// @param l2ReverseRegistrar_ The address of the ENS-deployed L2 Reverse Registrar.
     function initialize(
         IBaseRegistrar base_,
@@ -305,6 +306,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         string memory rootName_,
         address paymentReceiver_,
         address legacyRegistrarController_,
+        address legacyL2Resolver_,
         address l2ReverseRegistrar_
     ) public initializer onlyInitializing {
         __Ownable_init(owner_);
@@ -317,6 +319,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         $.rootName = rootName_;
         $.paymentReceiver = paymentReceiver_;
         $.legacyRegistrarController = legacyRegistrarController_;
+        $.legacyL2Resolver = legacyL2Resolver_;
         $.l2ReverseRegistrar = l2ReverseRegistrar_;
     }
 
