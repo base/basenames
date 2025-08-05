@@ -87,6 +87,8 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         address paymentReceiver;
         /// @notice The address of the legacy registrar controller.
         address legacyRegistrarController;
+        /// @notice The address of the legacy L2 Resolver.
+        address legacyL2Resolver;
         /// @notice Each discount is stored against a unique 32-byte identifier, i.e. keccak256("test.discount.validator").
         mapping(bytes32 key => DiscountDetails details) discounts;
         /// @notice Storage for which addresses have already registered with a discount.
@@ -578,18 +580,16 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///     ENSIP-19 compliance.
     ///
     /// @param name The name that will be set as the primary for msg.sender.
-    /// @param resolver The address of the NameResolver compliant resolver for storing legacy records.
     /// @param signatureExpiry The signature expiry timestamp.
     /// @param coinTypes The array of coinTypes for replayable reverse record setting.
     /// @param signature The signature bytes.
     function setReverseRecord(
         string calldata name,
-        address resolver,
         uint256 signatureExpiry,
         uint256[] calldata coinTypes,
         bytes calldata signature
     ) external {
-        _setReverseRecord(name, resolver, signatureExpiry, coinTypes, signature);
+        _setReverseRecord(name, signatureExpiry, coinTypes, signature);
     }
 
     /// @notice Internal helper for validating ETH payments
@@ -624,9 +624,7 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         }
 
         if (request.reverseRecord) {
-            _setReverseRecord(
-                request.name, request.resolver, request.signatureExpiry, request.coinTypes, request.signature
-            );
+            _setReverseRecord(request.name, request.signatureExpiry, request.coinTypes, request.signature);
         }
 
         emit NameRegistered(request.name, label, request.owner, expires);
@@ -664,21 +662,21 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///     by calling ENS's L2ReverseRegistrar contract.
     ///
     /// @param name The name that will be set as the primary for msg.sender.
-    /// @param resolver The address of the NameResolver compliant resolver for storing legacy records.
     /// @param signatureExpiry The signature expiry timestamp.
     /// @param coinTypes The array of cointypes for replayable reverse record setting.
     /// @param signature The signature bytes.
     function _setReverseRecord(
         string calldata name,
-        address resolver,
         uint256 signatureExpiry,
         uint256[] calldata coinTypes,
         bytes calldata signature
     ) internal {
-        _setLegacyReverseRecord(name, resolver, msg.sender);
+        URCStorage storage $ = _getURCStorage();
+        string memory fullName = string.concat(name, $.rootName);
+        _setLegacyReverseRecord(fullName, msg.sender);
         if (signatureExpiry != 0 && coinTypes.length > 0 && signature.length > 0) {
-            IL2ReverseRegistrar(_getURCStorage().l2ReverseRegistrar).setNameForAddrWithSignature(
-                msg.sender, signatureExpiry, name, coinTypes, signature
+            IL2ReverseRegistrar($.l2ReverseRegistrar).setNameForAddrWithSignature(
+                msg.sender, signatureExpiry, fullName, coinTypes, signature
             );
         }
     }
@@ -686,10 +684,11 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @notice Sets the reverse record to `owner` for a specified `name` on the specified `resolver`.
     ///
     /// @param name The specified name.
-    /// @param resolver The resolver to set the reverse record on.
     /// @param owner  The owner of the reverse record.
-    function _setLegacyReverseRecord(string memory name, address resolver, address owner) internal {
-        _getURCStorage().reverseRegistrar.setNameForAddr(owner, owner, resolver, name);
+    function _setLegacyReverseRecord(string memory name, address owner) internal {
+        URCStorage storage $ = _getURCStorage();
+        // Use legacyL2Resolver because all legacy reverse records are stored there.
+        $.reverseRegistrar.setNameForAddr(owner, owner, $.legacyL2Resolver, name);
     }
 
     /// @notice Helper method for updating the `activeDiscounts` enumerable set.
