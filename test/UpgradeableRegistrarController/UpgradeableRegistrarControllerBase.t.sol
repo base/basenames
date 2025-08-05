@@ -14,7 +14,7 @@ import {UpgradeableRegistrarController} from "src/L2/UpgradeableRegistrarControl
 import {MockBaseRegistrar} from "test/mocks/MockBaseRegistrar.sol";
 import {MockDiscountValidator} from "test/mocks/MockDiscountValidator.sol";
 import {MockL2ReverseRegistrar} from "test/mocks/MockL2ReverseRegistrar.sol";
-import {MockNameWrapper} from "test/mocks/MockNameWrapper.sol";
+import {MockNameResolver} from "test/mocks/MockNameResolver.sol";
 import {MockPriceOracle} from "test/mocks/MockPriceOracle.sol";
 import {MockPublicResolver} from "test/mocks/MockPublicResolver.sol";
 import {MockReverseRegistrar} from "test/mocks/MockReverseRegistrar.sol";
@@ -35,6 +35,7 @@ contract UpgradeableRegistrarControllerBase is Test {
     Registry public registry;
     MockPublicResolver public resolver;
     MockRegistrarController public legacyController;
+    MockNameResolver public legacyL2Resolver;
     MockL2ReverseRegistrar public l2ReverseRegistrar;
 
     address owner = makeAddr("owner"); // Ownable owner on UpgradeableRegistrarController
@@ -63,6 +64,7 @@ contract UpgradeableRegistrarControllerBase is Test {
         resolver = new MockPublicResolver();
         validator = new MockDiscountValidator();
         legacyController = new MockRegistrarController(block.timestamp);
+        legacyL2Resolver = new MockNameResolver();
         l2ReverseRegistrar = new MockL2ReverseRegistrar();
 
         _establishNamespace();
@@ -77,6 +79,7 @@ contract UpgradeableRegistrarControllerBase is Test {
             rootName,
             payments,
             address(legacyController),
+            address(legacyL2Resolver),
             address(l2ReverseRegistrar)
         );
 

@@ -52,6 +52,7 @@ contract SwitchToUpgradeableRegistrarController is IntegrationTestBase {
             ".base.eth",
             payments,
             address(registrarController),
+            address(defaultL2Resolver),
             address(l2ReverseRegistrar)
         );
 
