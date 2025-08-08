@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 /// @notice Interface for the L2 Reverse Registrar.
-///     https://github.com/ensdomains/ens-contracts/tree/feature/simplify-reverse-resolver
+///     https://github.com/ensdomains/ens-contracts/blob/staging/contracts/reverseRegistrar/IL2ReverseRegistrar.sol
 interface IL2ReverseRegistrar {
     /// @notice Sets the `nameForAddr()` record for the calling account.
     ///

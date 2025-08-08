@@ -82,7 +82,7 @@ contract DiscountedRegister is UpgradeableRegistrarControllerBase {
         controller.discountedRegister{value: price - 1}(_getDefaultRegisterRequest(), discountKey, "");
     }
 
-    function test_registersWithDiscountSuccessfully() public {
+    function test_registersWithDiscountSuccessfully_withoutSignatureData() public {
         vm.deal(user, 1 ether);
         vm.prank(owner);
         controller.setDiscountDetails(_getDefaultDiscount());
@@ -106,6 +106,39 @@ contract DiscountedRegister is UpgradeableRegistrarControllerBase {
         bytes memory retByte = resolver.firstBytes();
         assertEq(keccak256(retByte), keccak256(request.data[0]));
         assertTrue(reverse.hasClaimed(user));
+        assertFalse(l2ReverseRegistrar.hasClaimed());
+        address[] memory addrs = new address[](1);
+        addrs[0] = user;
+        assertTrue(controller.hasRegisteredWithDiscount(addrs));
+    }
+
+    function test_registersWithDiscountSuccessfully_withSignatureData() public {
+        vm.deal(user, 1 ether);
+        vm.prank(owner);
+        controller.setDiscountDetails(_getDefaultDiscount());
+        validator.setReturnValue(true);
+        base.setAvailable(uint256(nameLabel), true);
+        UpgradeableRegistrarController.RegisterRequest memory request = _getDefaultRegisterRequest();
+        uint256 expires = block.timestamp + request.duration;
+        base.setNameExpires(uint256(nameLabel), expires);
+        uint256 price = controller.discountedRegisterPrice(name, duration, discountKey);
+        request.signatureExpiry = block.timestamp;
+        request.signature = bytes("notempty");
+
+        vm.expectEmit(address(controller));
+        emit UpgradeableRegistrarController.ETHPaymentProcessed(user, price);
+        vm.expectEmit(address(controller));
+        emit UpgradeableRegistrarController.NameRegistered(request.name, nameLabel, user, expires);
+        vm.expectEmit(address(controller));
+        emit UpgradeableRegistrarController.DiscountApplied(user, discountKey);
+
+        vm.prank(user);
+        controller.discountedRegister{value: price}(request, discountKey, "");
+
+        bytes memory retByte = resolver.firstBytes();
+        assertEq(keccak256(retByte), keccak256(request.data[0]));
+        assertTrue(reverse.hasClaimed(user));
+        assertTrue(l2ReverseRegistrar.hasClaimed());
         address[] memory addrs = new address[](1);
         addrs[0] = user;
         assertTrue(controller.hasRegisteredWithDiscount(addrs));
