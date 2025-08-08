@@ -6,6 +6,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {AttestationValidator} from "src/L2/discounts/AttestationValidator.sol";
 import {BaseRegistrar} from "src/L2/BaseRegistrar.sol";
 import {CBIdDiscountValidator} from "src/L2/discounts/CBIdDiscountValidator.sol";
+import {NameEncoder} from "ens-contracts/utils/NameEncoder.sol";
 import {ExponentialPremiumPriceOracle} from "src/L2/ExponentialPremiumPriceOracle.sol";
 import {ERC1155DiscountValidator} from "src/L2/discounts/ERC1155DiscountValidator.sol";
 import {IBaseRegistrar} from "src/L2/interface/IBaseRegistrar.sol";
@@ -129,22 +130,33 @@ contract IntegrationTestBase is Test {
         return rentPrices;
     }
 
-    function _registerAlice() internal {
+    function _registerAlice() internal returns (bytes32) {
         string memory name = "alice";
+        string memory fullName = string.concat(name, ".base.eth");
         uint256 duration = 365.25 days;
 
         uint256 registerPrice = registrarController.registerPrice(name, duration);
         vm.deal(alice, registerPrice);
+
+        // Establish legacy forward resolution data on registration
+        (, bytes32 node) = NameEncoder.dnsEncodeName(fullName);
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeWithSelector(AddrResolver.setAddr.selector, node, alice);
 
         RegistrarController.RegisterRequest memory request = RegistrarController.RegisterRequest({
             name: name,
             owner: alice,
             duration: duration,
             resolver: address(defaultL2Resolver),
-            data: new bytes[](0),
+            data: data,
             reverseRecord: true
         });
 
         registrarController.register{value: registerPrice}(request);
+        return node;
     }
+}
+
+interface AddrResolver {
+    function setAddr(bytes32 node, address a) external;
 }
