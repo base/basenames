@@ -3,16 +3,16 @@
 Script to generate a CSV file with token ids and 5-year duration for premint names.
 
 # Default 5-year duration
-python3 generate_premint_csv.py one_year_premints
+python3 generate_batch_renewals.py premint1
 
 # Custom 1-year duration
-python3 generate_premint_csv.py one_year_premints -d 1
+python3 generate_batch_renewals.py premint1 -d 1
 
 # Custom 2.5-year duration with custom output
-python3 generate_premint_csv.py one_year_premints -o custom.csv --duration 2.5
+python3 generate_batch_renewals.py premint1 -o premint1_batch.csv --duration 2.5
 
 # Show help
-python3 generate_premint_csv.py --help
+python3 generate_batch_renewals.py --help
 """
 
 import csv
