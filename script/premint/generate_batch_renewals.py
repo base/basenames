@@ -95,22 +95,49 @@ def main():
     print(f"Input file: {input_file}")
     print(f"Output file: {output_file}")
     
-    # Read names from input file and generate CSV
-    with open(input_file, 'r') as infile, open(output_file, 'w', newline='') as outfile:
+    # Read names from input file and collect unique IDs
+    seen_ids = set()
+    unique_entries = []
+    duplicate_names = []
+    
+    with open(input_file, 'r') as infile:
+        for line_num, line in enumerate(infile, 1):
+            name = line.strip()
+            if name:  # Skip empty lines
+                name_id = keccak256_to_uint(name)
+                if name_id not in seen_ids:
+                    seen_ids.add(name_id)
+                    unique_entries.append((name_id, duration_seconds, name))
+                else:
+                    duplicate_names.append((line_num, name))
+    
+    # Write CSV with unique entries only
+    with open(output_file, 'w', newline='') as outfile:
         csv_writer = csv.writer(outfile)
         
         # Write header
         csv_writer.writerow(['id', 'duration'])
         
-        # Process each name
-        for line in infile:
-            name = line.strip()
-            if name:  # Skip empty lines
-                name_id = keccak256_to_uint(name)
-                csv_writer.writerow([name_id, duration_seconds])
+        # Write unique entries
+        for name_id, duration, _ in unique_entries:
+            csv_writer.writerow([name_id, duration])
+    
+    # Report results
+    total_names = sum(1 for line in open(input_file) if line.strip())
+    unique_count = len(unique_entries)
+    duplicate_count = len(duplicate_names)
     
     print(f"CSV file generated: {output_file}")
-    print(f"Processed {sum(1 for line in open(input_file) if line.strip())} names")
+    print(f"Total names processed: {total_names}")
+    print(f"Unique entries written: {unique_count}")
+    print(f"Duplicates found and skipped: {duplicate_count}")
+    
+    if duplicate_names:
+        print("\nDuplicate names found:")
+        for line_num, name in duplicate_names:
+            print(f"  Line {line_num}: {name}")
+    else:
+        print("No duplicates found.")
     return 0
 
 if __name__ == "__main__":
