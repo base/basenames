@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
+import {DiscountValidator} from "src/L2/discounts/DiscountValidator.sol";
 import {RegistrarControllerBase} from "./RegistrarControllerBase.t.sol";
 import {RegistrarController} from "src/L2/RegistrarController.sol";
 import {IPriceOracle} from "src/L2/interface/IPriceOracle.sol";
@@ -11,6 +12,7 @@ contract DiscountedRegister is RegistrarControllerBase {
         vm.deal(user, 1 ether);
 
         inactiveDiscount.active = false;
+        base.setAvailable(uint256(nameLabel), true);
         vm.prank(owner);
         controller.setDiscountDetails(inactiveDiscount);
         uint256 price = controller.discountedRegisterPrice(name, duration, discountKey);
@@ -26,8 +28,9 @@ contract DiscountedRegister is RegistrarControllerBase {
         controller.setDiscountDetails(_getDefaultDiscount());
         validator.setReturnValue(false);
         uint256 price = controller.discountedRegisterPrice(name, duration, discountKey);
+        base.setAvailable(uint256(nameLabel), true);
 
-        vm.expectRevert(abi.encodeWithSelector(RegistrarController.InvalidDiscount.selector, discountKey, ""));
+        vm.expectRevert(abi.encodeWithSelector(DiscountValidator.InvalidDiscount.selector, user, ""));
         vm.prank(user);
         controller.discountedRegister{value: price}(_getDefaultRegisterRequest(), discountKey, "");
     }
@@ -136,8 +139,9 @@ contract DiscountedRegister is RegistrarControllerBase {
         vm.prank(user);
         controller.discountedRegister{value: price}(request, discountKey, "");
 
-        vm.expectRevert(abi.encodeWithSelector(RegistrarController.AlreadyRegisteredWithDiscount.selector, user));
         request.name = "newname";
+        base.setAvailable(uint256(keccak256(bytes(request.name))),true);
+        vm.expectRevert(abi.encodeWithSelector(RegistrarController.AlreadyRegisteredWithDiscount.selector, user));
         vm.prank(user);
         controller.discountedRegister{value: price}(request, discountKey, "");
     }
