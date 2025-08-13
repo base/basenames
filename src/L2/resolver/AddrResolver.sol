@@ -121,8 +121,12 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
         }
     }
 
+    /// @notice Fetch the uint32 coinType from an EVM coinType.
+    ///
     /// @dev Extract Chain ID from `coinType`.
+    ///
     /// @param coinType The coin type.
+    ///
     /// @return The Chain ID or 0 if non-EVM Chain.
     function chainFromCoinType(uint256 coinType) internal pure returns (uint32) {
         if (coinType == COIN_TYPE_ETH) return CHAIN_ID_ETH;
@@ -130,9 +134,11 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
         return uint32(coinType < COIN_TYPE_DEFAULT ? coinType : 0);
     }
 
-    /// @dev Determine if Coin Type is for an EVM address.
-    /// @param coinType The coin type.
-    /// @return True if coin type represents an EVM address.
+    /// @notice Determine if `coinType` is for an EVM address.
+    ///
+    /// @param coinType The network-as-coin type.
+    ///
+    /// @return `true` if coin type represents an EVM address, else `false`.
     function isEVMCoinType(uint256 coinType) internal pure returns (bool) {
         return coinType == COIN_TYPE_DEFAULT || chainFromCoinType(coinType) > 0;
     }
