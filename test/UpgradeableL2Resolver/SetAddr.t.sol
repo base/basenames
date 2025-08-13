@@ -9,6 +9,7 @@ contract SetAddr is UpgradeableL2ResolverBase {
     uint256 BTC_COINTYPE = 0;
     uint256 ETH_COINTYPE = 60;
     uint256 BASE_COINTYPE = 2147492101;
+    uint256 COIN_TYPE_DEFAULT = 1 << 31; // 0x8000_0000
 
     function test_reverts_forUnauthorizedUser() public {
         vm.expectRevert(abi.encodeWithSelector(ResolverBase.NotAuthorized.selector, node, notUser));
@@ -20,6 +21,13 @@ contract SetAddr is UpgradeableL2ResolverBase {
         vm.prank(user);
         vm.expectRevert();
         resolver.setAddr(node, 60, "");
+    }
+
+    function test_reverts_whenInvalidEVMAddress() public {
+        bytes memory badAddr = bytes("1234");
+        vm.expectRevert(abi.encodeWithSelector(AddrResolver.InvalidEVMAddress.selector, badAddr));
+        vm.prank(user);
+        resolver.setAddr(node, BASE_COINTYPE, badAddr);
     }
 
     function test_setsAnETHAddress_byDefault(address a) public {
@@ -39,6 +47,18 @@ contract SetAddr is UpgradeableL2ResolverBase {
     function test_setsABaseAddress(address a) public {
         vm.prank(user);
         resolver.setAddr(node, BASE_COINTYPE, addressToBytes(a));
+        assertEq(bytesToAddress(resolver.addr(node, BASE_COINTYPE)), a);
+    }
+
+    function test_setsADefaultAddress(address a) public {
+        vm.prank(user);
+        resolver.setAddr(node, COIN_TYPE_DEFAULT, addressToBytes(a));
+        assertEq(bytesToAddress(resolver.addr(node, COIN_TYPE_DEFAULT)), a);
+    }
+
+    function test_fetchesDefaultForBaseCointype(address a) public {
+        vm.prank(user);
+        resolver.setAddr(node, COIN_TYPE_DEFAULT, addressToBytes(a));
         assertEq(bytesToAddress(resolver.addr(node, BASE_COINTYPE)), a);
     }
 
