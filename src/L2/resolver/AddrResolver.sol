@@ -60,7 +60,7 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
         }
         emit AddressChanged(node, coinType, a);
         if (coinType == COIN_TYPE_ETH) {
-            emit AddrChanged(node, bytesToAddress(a));
+            emit AddrChanged(node, address(bytes20(a)));
         }
         _getAddrResolverStorage().versionable_addresses[_getResolverBaseStorage().recordVersions[node]][node][coinType]
         = a;
