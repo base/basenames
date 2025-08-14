@@ -44,6 +44,12 @@ contract SetAddr is UpgradeableL2ResolverBase {
         assertEq(bytesToAddress(resolver.addr(node, ETH_COINTYPE)), a);
     }
 
+    function test_letsAUserSetZeroAddress_forEthCointype() public {
+        vm.prank(user);
+        resolver.setAddr(node, address(0));
+        assertEq(resolver.addr(node), address(0));
+    }
+
     function test_setsABaseAddress(address a) public {
         vm.prank(user);
         resolver.setAddr(node, BASE_COINTYPE, addressToBytes(a));
