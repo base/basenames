@@ -20,7 +20,7 @@ contract SetAddr is UpgradeableL2ResolverBase {
     function test_reverts_for_invalidAddress() public {
         vm.prank(user);
         vm.expectRevert();
-        resolver.setAddr(node, 60, "");
+        resolver.setAddr(node, 60, "badadd");
     }
 
     function test_reverts_whenInvalidEVMAddress() public {
