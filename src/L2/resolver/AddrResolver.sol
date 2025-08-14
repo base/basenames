@@ -136,9 +136,9 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
 
     /// @notice Determine if `coinType` is for an EVM address.
     ///
-    /// @param coinType The network-as-coin type.
+    /// @param coinType The network as a coinType.
     ///
-    /// @return `true` if coin type represents an EVM address, else `false`.
+    /// @return `true` if coinType represents an EVM address, else `false`.
     function isEVMCoinType(uint256 coinType) internal pure returns (bool) {
         return coinType == COIN_TYPE_DEFAULT || chainFromCoinType(coinType) > 0;
     }
