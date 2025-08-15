@@ -74,6 +74,20 @@ def parse_arguments():
     )
     return parser.parse_args()
 
+def load_excluded_names(script_dir: Path) -> set:
+    """Load names to exclude from the lostnames file."""
+    lostnames_file = script_dir / "lostnames"
+    excluded_names = set()
+    
+    if lostnames_file.exists():
+        with open(lostnames_file, 'r') as f:
+            for line in f:
+                name = line.strip()
+                if name:
+                    excluded_names.add(name.lower())  # Store in lowercase for case-insensitive comparison
+    
+    return excluded_names
+
 def main():
     """Main function to generate the CSV file."""
     
@@ -83,11 +97,16 @@ def main():
     # Path to the input and output files
     input_file = Path(args.input_file)
     output_file = Path(args.output)
+    script_dir = Path(__file__).parent
     
     # Check if input file exists
     if not input_file.exists():
         print(f"Error: Input file '{input_file}' not found.")
         return 1
+    
+    # Load excluded names from lostnames file
+    excluded_names = load_excluded_names(script_dir)
+    print(f"Loaded {len(excluded_names)} excluded names from lostnames file")
     
     # Calculate duration in seconds
     duration_seconds = calculate_duration_in_seconds(args.duration)
@@ -99,11 +118,17 @@ def main():
     seen_ids = set()
     unique_entries = []
     duplicate_names = []
+    excluded_names_found = []
     
     with open(input_file, 'r') as infile:
         for line_num, line in enumerate(infile, 1):
             name = line.strip()
             if name:  # Skip empty lines
+                # Check if name is in excluded list (case-insensitive)
+                if name.lower() in excluded_names:
+                    excluded_names_found.append((line_num, name))
+                    continue
+                
                 name_id = keccak256_to_uint(name)
                 if name_id not in seen_ids:
                     seen_ids.add(name_id)
@@ -126,11 +151,13 @@ def main():
     total_names = sum(1 for line in open(input_file) if line.strip())
     unique_count = len(unique_entries)
     duplicate_count = len(duplicate_names)
+    excluded_count = len(excluded_names_found)
     
     print(f"CSV file generated: {output_file}")
     print(f"Total names processed: {total_names}")
     print(f"Unique entries written: {unique_count}")
     print(f"Duplicates found and skipped: {duplicate_count}")
+    print(f"Excluded names found and skipped: {excluded_count}")
     
     if duplicate_names:
         print("\nDuplicate names found:")
@@ -138,6 +165,13 @@ def main():
             print(f"  Line {line_num}: {name}")
     else:
         print("No duplicates found.")
+    
+    if excluded_names_found:
+        print("\nExcluded names found (from lostnames):")
+        for line_num, name in excluded_names_found:
+            print(f"  Line {line_num}: {name}")
+    else:
+        print("No excluded names found.")
     return 0
 
 if __name__ == "__main__":
