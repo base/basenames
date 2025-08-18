@@ -17,7 +17,7 @@ remappings = [
 fs_permissions = [{access = "read", path = "./script/premint/"}]
 auto_detect_remappings = false
 
-[profile.deploy]
+[profile.production]
 src = "src"
 out = "out"
 libs = ["lib"]
