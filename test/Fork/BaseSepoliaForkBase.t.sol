@@ -14,7 +14,7 @@ contract BaseSepoliaForkBase is Test {
     // RPC alias must be configured in foundry.toml as `base-sepolia`.
     string internal constant FORK_ALIAS = "base-sepolia";
 
-    // Addresses from provided Terraform output
+    // Addresses from Terraform output
     address internal constant ENS_REGISTRY = 0x1493b2567056c2181630115660963E13A8E32735;
     address internal constant BASE_REGISTRAR = 0xA0c70ec36c010B55E3C434D6c6EbEEC50c705794;
     address internal constant LEGACY_GA_CONTROLLER = 0x49aE3cC2e3AA768B1e5654f5D3C6002144A59581;
@@ -27,9 +27,6 @@ contract BaseSepoliaForkBase is Test {
     // ENS L2 Reverse Registrar (Base Sepolia) per ENS docs
     address internal constant ENS_L2_REVERSE_REGISTRAR = 0x00000BeEF055f7934784D6d81b6BC86665630dbA;
 
-    // Useful constants
-    uint256 internal constant BASE_COINTYPE = (0x80000000 | 0x00002105);
-
     // Actors
     uint256 internal userPk;
     address internal user;
@@ -38,6 +35,7 @@ contract BaseSepoliaForkBase is Test {
     RegistrarController internal legacyController;
     UpgradeableRegistrarController internal upgradeableController;
     NameResolver internal legacyResolver;
+    IL2ReverseRegistrar internal l2ReverseRegistrar;
 
     function setUp() public virtual {
         vm.createSelectFork(FORK_ALIAS);
@@ -49,6 +47,7 @@ contract BaseSepoliaForkBase is Test {
         legacyController = RegistrarController(LEGACY_GA_CONTROLLER);
         upgradeableController = UpgradeableRegistrarController(UPGRADEABLE_CONTROLLER_PROXY);
         legacyResolver = NameResolver(LEGACY_L2_RESOLVER);
+        l2ReverseRegistrar = IL2ReverseRegistrar(ENS_L2_REVERSE_REGISTRAR);
     }
 
     function _labelFor(string memory name) internal pure returns (bytes32) {

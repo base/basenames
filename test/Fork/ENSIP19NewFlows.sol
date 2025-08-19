@@ -53,7 +53,7 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
         assertEq(AddrResolver(UPGRADEABLE_L2_RESOLVER_PROXY).addr(node), user, "default addr matches user");
     }
 
-    function test_register_with_reverse_on_new_sets_legacy_reverse() public {
+    function test_register_with_reverse_on_new_sets_only_legacy_reverse_no_signature() public {
         string memory name = "forknewrev";
         bytes32 root = legacyController.rootNode();
         bytes32 node = keccak256(abi.encodePacked(root, keccak256(bytes(name))));
@@ -83,9 +83,13 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
         ENS ens = ENS(ENS_REGISTRY);
         assertEq(ens.resolver(node), UPGRADEABLE_L2_RESOLVER_PROXY);
         assertEq(ens.owner(node), user);
+
+        // L2 reverse should NOT be set without signature
+        string memory l2Name = l2ReverseRegistrar.nameForAddr(user);
+        assertTrue(keccak256(bytes(l2Name)) != keccak256(bytes(expectedFull)), "l2 reverse should not be set");
     }
 
-    function test_set_primary_on_new_writes_both_paths_no_mock() public {
+    function test_set_primary_on_new_writes_both_paths_with_signature() public {
         string memory name = "forknewprim";
         string memory fullName = string.concat(name, legacyController.rootName());
         uint256[] memory coinTypes = new uint256[](1);
@@ -100,14 +104,8 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
         string memory storedLegacy = NameResolver(LEGACY_L2_RESOLVER).name(baseRevNode);
         assertEq(keccak256(bytes(storedLegacy)), keccak256(bytes(fullName)), "legacy reverse not set");
 
-        (bool ok, bytes memory ret) =
-            ENS_L2_REVERSE_REGISTRAR.staticcall(abi.encodeWithSignature("nameForAddr(address)", user));
-        if (ok) {
-            string memory l2Name = abi.decode(ret, (string));
-            assertEq(keccak256(bytes(l2Name)), keccak256(bytes(fullName)), "l2 reverse not set");
-        } else {
-            assertTrue(ok || true);
-        }
+        string memory l2Name = l2ReverseRegistrar.nameForAddr(user);
+        assertEq(keccak256(bytes(l2Name)), keccak256(bytes(fullName)), "l2 reverse not set");
     }
 
     function _addressToBytes(address a) internal pure returns (bytes memory b) {
