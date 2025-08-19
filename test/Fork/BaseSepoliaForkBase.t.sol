@@ -2,30 +2,39 @@
 pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {RegistrarController} from "src/L2/RegistrarController.sol";
-import {UpgradeableRegistrarController} from "src/L2/UpgradeableRegistrarController.sol";
 import {ENS} from "ens-contracts/registry/ENS.sol";
 import {NameResolver} from "ens-contracts/resolvers/profiles/NameResolver.sol";
-import {IL2ReverseRegistrar} from "src/L2/interface/IL2ReverseRegistrar.sol";
 
+import {RegistrarController} from "src/L2/RegistrarController.sol";
+import {UpgradeableRegistrarController} from "src/L2/UpgradeableRegistrarController.sol";
+import {IL2ReverseRegistrar} from "src/L2/interface/IL2ReverseRegistrar.sol";
+import {IReverseRegistrar} from "src/L2/interface/IReverseRegistrar.sol";
+import {Sha3} from "src/lib/Sha3.sol";
 import {BASE_ETH_NODE} from "src/util/Constants.sol";
+
+import {BaseSepolia as BaseSepoliaConstants} from "test/Fork/BaseSepoliaConstants.sol";
+import {L2Resolver} from "src/L2/L2Resolver.sol";
+import {ReverseRegistrar} from "src/L2/ReverseRegistrar.sol";
 
 contract BaseSepoliaForkBase is Test {
     // RPC alias must be configured in foundry.toml as `base-sepolia`.
     string internal constant FORK_ALIAS = "base-sepolia";
 
-    // Addresses from Terraform output
-    address internal constant ENS_REGISTRY = 0x1493b2567056c2181630115660963E13A8E32735;
-    address internal constant BASE_REGISTRAR = 0xA0c70ec36c010B55E3C434D6c6EbEEC50c705794;
-    address internal constant LEGACY_GA_CONTROLLER = 0x49aE3cC2e3AA768B1e5654f5D3C6002144A59581;
-    address internal constant LEGACY_L2_RESOLVER = 0x6533C94869D28fAA8dF77cc63f9e2b2D6Cf77eBA;
-    address internal constant LEGACY_REVERSE_REGISTRAR = 0xa0A8401ECF248a9375a0a71C4dedc263dA18dCd7;
+    // Addresses from constants
+    address internal constant REGISTRY = BaseSepoliaConstants.REGISTRY;
+    address internal constant BASE_REGISTRAR = BaseSepoliaConstants.BASE_REGISTRAR;
+    address internal constant LEGACY_GA_CONTROLLER = BaseSepoliaConstants.LEGACY_GA_CONTROLLER;
+    address internal constant LEGACY_L2_RESOLVER = BaseSepoliaConstants.LEGACY_L2_RESOLVER;
+    address internal constant LEGACY_REVERSE_REGISTRAR = BaseSepoliaConstants.LEGACY_REVERSE_REGISTRAR;
 
-    address internal constant UPGRADEABLE_CONTROLLER_PROXY = 0x82c858CDF64b3D893Fe54962680edFDDC37e94C8;
-    address internal constant UPGRADEABLE_L2_RESOLVER_PROXY = 0x85C87e548091f204C2d0350b39ce1874f02197c6;
+    address internal constant UPGRADEABLE_CONTROLLER_PROXY = BaseSepoliaConstants.UPGRADEABLE_CONTROLLER_PROXY;
+    address internal constant UPGRADEABLE_L2_RESOLVER_PROXY = BaseSepoliaConstants.UPGRADEABLE_L2_RESOLVER_PROXY;
 
-    // ENS L2 Reverse Registrar (Base Sepolia) per ENS docs
-    address internal constant ENS_L2_REVERSE_REGISTRAR = 0x00000BeEF055f7934784D6d81b6BC86665630dbA;
+    // ENS L2 Reverse Registrar (Base Sepolia)
+    address internal constant ENS_L2_REVERSE_REGISTRAR = BaseSepoliaConstants.ENS_L2_REVERSE_REGISTRAR;
+
+    // Owners / ops
+    address internal constant L2_OWNER = BaseSepoliaConstants.L2_OWNER;
 
     // Actors
     uint256 internal userPk;
@@ -48,6 +57,38 @@ contract BaseSepoliaForkBase is Test {
         upgradeableController = UpgradeableRegistrarController(UPGRADEABLE_CONTROLLER_PROXY);
         legacyResolver = NameResolver(LEGACY_L2_RESOLVER);
         l2ReverseRegistrar = IL2ReverseRegistrar(ENS_L2_REVERSE_REGISTRAR);
+
+        // Ensure legacy resolver authorizes the configured legacy reverse registrar
+        // and ensure the reverse parent node is owned by that registrar so claims succeed.
+        // 1) Align resolver.reverseRegistrar
+        try L2Resolver(LEGACY_L2_RESOLVER).reverseRegistrar() returns (address currentRR) {
+            if (currentRR != LEGACY_REVERSE_REGISTRAR) {
+                vm.prank(L2_OWNER);
+                L2Resolver(LEGACY_L2_RESOLVER).setReverseRegistrar(LEGACY_REVERSE_REGISTRAR);
+            }
+        } catch {}
+        // 2) Ensure ENS owner(BASE_SEPOLIA_REVERSE_NODE) == LEGACY_REVERSE_REGISTRAR
+        bytes32 parentNode = BaseSepoliaConstants.BASE_SEPOLIA_REVERSE_NODE;
+        address currentOwner = ENS(REGISTRY).owner(parentNode);
+        if (currentOwner != LEGACY_REVERSE_REGISTRAR) {
+            vm.prank(currentOwner);
+            ENS(REGISTRY).setOwner(parentNode, LEGACY_REVERSE_REGISTRAR);
+        }
+        // 3) Ensure RegistrarController uses the configured legacy reverse registrar
+        try legacyController.reverseRegistrar() returns (IReverseRegistrar currentLegacyRR) {
+            if (address(currentLegacyRR) != LEGACY_REVERSE_REGISTRAR) {
+                address rcOwner = legacyController.owner();
+                vm.prank(rcOwner);
+                legacyController.setReverseRegistrar(IReverseRegistrar(LEGACY_REVERSE_REGISTRAR));
+            }
+        } catch {}
+        // 4) Approve RegistrarController as a controller on the ReverseRegistrar so it can set names on behalf of users
+        try ReverseRegistrar(LEGACY_REVERSE_REGISTRAR).setControllerApproval(LEGACY_GA_CONTROLLER, true) {}
+        catch {
+            address rrOwner = ReverseRegistrar(LEGACY_REVERSE_REGISTRAR).owner();
+            vm.prank(rrOwner);
+            ReverseRegistrar(LEGACY_REVERSE_REGISTRAR).setControllerApproval(LEGACY_GA_CONTROLLER, true);
+        }
     }
 
     function _labelFor(string memory name) internal pure returns (bytes32) {
@@ -63,27 +104,7 @@ contract BaseSepoliaForkBase is Test {
     }
 
     function _baseReverseNode(address addr, bytes32 baseReverseParentNode) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(baseReverseParentNode, _sha3HexAddress(addr)));
-    }
-
-    function _sha3HexAddress(address addr) internal pure returns (bytes32 ret) {
-        bytes16 lookup = 0x30313233343536373839616263646566;
-        assembly {
-            let i := 40
-            let n := addr
-            let ptr := mload(0x40)
-            mstore(0x40, add(ptr, 64))
-            for {} gt(i, 0) {} {
-                i := sub(i, 1)
-                mstore8(add(ptr, i), byte(and(n, 0x0f), lookup))
-                n := shr(4, n)
-                i := sub(i, 1)
-                mstore8(add(ptr, i), byte(and(n, 0x0f), lookup))
-                n := shr(4, n)
-                if iszero(i) { break }
-            }
-            ret := keccak256(ptr, 40)
-        }
+        return keccak256(abi.encodePacked(baseReverseParentNode, Sha3.hexAddress(addr)));
     }
 
     // Build a signature for ENS L2 Reverse Registrar setNameForAddrWithSignature, EIP-191 style
@@ -92,7 +113,6 @@ contract BaseSepoliaForkBase is Test {
         view
         returns (bytes memory)
     {
-        // bytes32 message = keccak256(abi.encodePacked(address(this), selector, addr, expiry, name, coinTypes)).toEthSignedMessageHash();
         bytes4 selector = IL2ReverseRegistrar.setNameForAddrWithSignature.selector;
         bytes32 inner =
             keccak256(abi.encodePacked(ENS_L2_REVERSE_REGISTRAR, selector, user, expiry, fullName, coinTypes));

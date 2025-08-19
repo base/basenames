@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {BaseSepoliaForkBase} from "./BaseSepoliaForkBase.t.sol";
-import {RegistrarController} from "src/L2/RegistrarController.sol";
-import {IReverseRegistrar} from "src/L2/interface/IReverseRegistrar.sol";
 import {ENS} from "ens-contracts/registry/ENS.sol";
 import {NameResolver} from "ens-contracts/resolvers/profiles/NameResolver.sol";
-import {BASE_REVERSE_NODE} from "src/util/Constants.sol";
+
+import {IReverseRegistrar} from "src/L2/interface/IReverseRegistrar.sol";
+import {RegistrarController} from "src/L2/RegistrarController.sol";
+
+import {BaseSepoliaForkBase} from "./BaseSepoliaForkBase.t.sol";
+import {BaseSepolia as BaseSepoliaConstants} from "./BaseSepoliaConstants.sol";
 
 contract ENSIP19LegacyFlows is BaseSepoliaForkBase {
     function test_register_name_on_legacy() public {
@@ -31,7 +33,7 @@ contract ENSIP19LegacyFlows is BaseSepoliaForkBase {
         vm.stopPrank();
 
         // Assert resolver set on registry and owner assigned
-        ENS ens = ENS(ENS_REGISTRY);
+        ENS ens = ENS(REGISTRY);
         address ownerNow = ens.owner(node);
         address resolverNow = ens.resolver(node);
         assertEq(ownerNow, user, "legacy owner");
@@ -62,12 +64,12 @@ contract ENSIP19LegacyFlows is BaseSepoliaForkBase {
         IReverseRegistrar(LEGACY_REVERSE_REGISTRAR).setNameForAddr(user, user, LEGACY_L2_RESOLVER, _fullName(name));
 
         // Validate reverse record was set on the legacy resolver
-        bytes32 baseRevNode = _baseReverseNode(user, BASE_REVERSE_NODE);
+        bytes32 baseRevNode = _baseReverseNode(user, BaseSepoliaConstants.BASE_SEPOLIA_REVERSE_NODE);
         string memory storedName = NameResolver(LEGACY_L2_RESOLVER).name(baseRevNode);
         assertEq(keccak256(bytes(storedName)), keccak256(bytes(_fullName(name))), "reverse name not set");
 
         // Forward resolver unchanged
-        ENS ens = ENS(ENS_REGISTRY);
+        ENS ens = ENS(REGISTRY);
         assertEq(ens.resolver(node), LEGACY_L2_RESOLVER, "resolver unchanged");
     }
 
@@ -91,13 +93,13 @@ contract ENSIP19LegacyFlows is BaseSepoliaForkBase {
         legacyController.register{value: price}(req);
 
         // Assert reverse was set by the controller calling the ReverseRegistrar
-        bytes32 baseRevNode = _baseReverseNode(user, BASE_REVERSE_NODE);
+        bytes32 baseRevNode = _baseReverseNode(user, BaseSepoliaConstants.BASE_SEPOLIA_REVERSE_NODE);
         string memory storedName = NameResolver(LEGACY_L2_RESOLVER).name(baseRevNode);
         string memory expectedFull = string.concat(name, legacyController.rootName());
         assertEq(keccak256(bytes(storedName)), keccak256(bytes(expectedFull)), "reverse name not set by controller");
 
         // Also verify forward resolver/owner as a sanity check
-        ENS ens = ENS(ENS_REGISTRY);
+        ENS ens = ENS(REGISTRY);
         assertEq(ens.owner(node), user);
         assertEq(ens.resolver(node), LEGACY_L2_RESOLVER);
     }

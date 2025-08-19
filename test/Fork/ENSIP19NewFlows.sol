@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {BaseSepoliaForkBase} from "./BaseSepoliaForkBase.t.sol";
-import {UpgradeableRegistrarController} from "src/L2/UpgradeableRegistrarController.sol";
 import {ENS} from "ens-contracts/registry/ENS.sol";
 import {AddrResolver} from "ens-contracts/resolvers/profiles/AddrResolver.sol";
 import {NameResolver} from "ens-contracts/resolvers/profiles/NameResolver.sol";
+
 import {BASE_REVERSE_NODE} from "src/util/Constants.sol";
+import {UpgradeableRegistrarController} from "src/L2/UpgradeableRegistrarController.sol";
+
+import {BaseSepoliaForkBase} from "./BaseSepoliaForkBase.t.sol";
 
 contract ENSIP19NewFlows is BaseSepoliaForkBase {
     uint256 internal constant BASE_SEPOLIA_COINTYPE = 2147568180;
@@ -41,7 +43,7 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
         vm.prank(user);
         upgradeableController.register{value: price}(req);
 
-        ENS ens = ENS(ENS_REGISTRY);
+        ENS ens = ENS(REGISTRY);
         address resolverNow = ens.resolver(node);
         address ownerNow = ens.owner(node);
         assertEq(resolverNow, UPGRADEABLE_L2_RESOLVER_PROXY, "resolver should be upgradeable L2 resolver");
@@ -80,7 +82,7 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
         string memory expectedFull = string.concat(name, legacyController.rootName());
         assertEq(keccak256(bytes(storedName)), keccak256(bytes(expectedFull)), "legacy reverse name not set");
 
-        ENS ens = ENS(ENS_REGISTRY);
+        ENS ens = ENS(REGISTRY);
         assertEq(ens.resolver(node), UPGRADEABLE_L2_RESOLVER_PROXY);
         assertEq(ens.owner(node), user);
 
