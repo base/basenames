@@ -28,9 +28,15 @@ jobs:
         run: forge install --no-git
 
       - name: Build
-        run: forge build
+        env:
+          BASE_SEPOLIA_RPC_URL: ${{ env.BASE_SEPOLIA_RPC_URL }}
+        run: |
+          echo "BASE_SEPOLIA_RPC_URL=$BASE_SEPOLIA_RPC_URL"
+          forge build
 
       - name: Test
+        env:
+          BASE_SEPOLIA_RPC_URL: ${{ env.BASE_SEPOLIA_RPC_URL }}
         run: forge test -vvv
 
 
