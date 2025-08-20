@@ -15,6 +15,12 @@ interface IL2ReverseRegistrar {
     /// @param name The name to set.
     function setNameForAddr(address addr, string memory name) external;
 
+    /// @notice Returns the name for an address.
+    ///
+    /// @param addr The address to get the name for.
+    /// @return The name for the address.
+    function nameForAddr(address addr) external view returns (string memory);
+
     /// @notice Sets the `nameForAddr()` record for the addr provided account using a signature.
     ///
     /// @param addr The address to set the name for.
@@ -46,4 +52,10 @@ interface IL2ReverseRegistrar {
         uint256[] memory coinTypes,
         bytes memory signature
     ) external;
+
+    /// @notice Migrates the names from the old reverse resolver to the new one.
+    ///         Only callable by the owner.
+    ///
+    /// @param addresses The addresses to migrate.
+    function batchSetName(address[] calldata addresses) external;
 }
