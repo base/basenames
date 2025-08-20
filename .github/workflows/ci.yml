@@ -18,6 +18,16 @@ jobs:
         with:
           version: stable
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python deps
+        run: |
+          python3 -V
+          pip install --disable-pip-version-check --no-cache-dir eth-abi
+
       - name: Cache lib
         uses: actions/cache@v4
         with:
