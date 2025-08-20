@@ -57,38 +57,6 @@ contract BaseSepoliaForkBase is Test {
         upgradeableController = UpgradeableRegistrarController(UPGRADEABLE_CONTROLLER_PROXY);
         legacyResolver = NameResolver(LEGACY_L2_RESOLVER);
         l2ReverseRegistrar = IL2ReverseRegistrar(ENS_L2_REVERSE_REGISTRAR);
-
-        // Ensure legacy resolver authorizes the configured legacy reverse registrar
-        // and ensure the reverse parent node is owned by that registrar so claims succeed.
-        // 1) Ensure ENS owner(BASE_SEPOLIA_REVERSE_NODE) == LEGACY_REVERSE_REGISTRAR
-        bytes32 parentNode = BaseSepoliaConstants.BASE_SEPOLIA_REVERSE_NODE;
-        address currentOwner = ENS(REGISTRY).owner(parentNode);
-        if (currentOwner != LEGACY_REVERSE_REGISTRAR) {
-            vm.prank(currentOwner);
-            ENS(REGISTRY).setOwner(parentNode, LEGACY_REVERSE_REGISTRAR);
-        }
-        // 2) Ensure RegistrarController uses the configured legacy reverse registrar
-        try legacyController.reverseRegistrar() returns (IReverseRegistrar currentLegacyRR) {
-            if (address(currentLegacyRR) != LEGACY_REVERSE_REGISTRAR) {
-                address rcOwner = legacyController.owner();
-                vm.prank(rcOwner);
-                legacyController.setReverseRegistrar(IReverseRegistrar(LEGACY_REVERSE_REGISTRAR));
-            }
-        } catch {}
-        // 3) Approve RegistrarController as a controller on the ReverseRegistrar so it can set names on behalf of users
-        try ReverseRegistrar(LEGACY_REVERSE_REGISTRAR).setControllerApproval(LEGACY_GA_CONTROLLER, true) {}
-        catch {
-            address rrOwner = ReverseRegistrar(LEGACY_REVERSE_REGISTRAR).owner();
-            vm.prank(rrOwner);
-            ReverseRegistrar(LEGACY_REVERSE_REGISTRAR).setControllerApproval(LEGACY_GA_CONTROLLER, true);
-        }
-        // 4) Approve upgradeable controller proxy
-        try ReverseRegistrar(LEGACY_REVERSE_REGISTRAR).setControllerApproval(UPGRADEABLE_CONTROLLER_PROXY, true) {}
-        catch {
-            address rrOwner2 = ReverseRegistrar(LEGACY_REVERSE_REGISTRAR).owner();
-            vm.prank(rrOwner2);
-            ReverseRegistrar(LEGACY_REVERSE_REGISTRAR).setControllerApproval(UPGRADEABLE_CONTROLLER_PROXY, true);
-        }
     }
 
     function _labelFor(string memory name) internal pure returns (bytes32) {
