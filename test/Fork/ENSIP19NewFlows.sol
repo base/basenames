@@ -5,10 +5,10 @@ import {ENS} from "ens-contracts/registry/ENS.sol";
 import {AddrResolver} from "ens-contracts/resolvers/profiles/AddrResolver.sol";
 import {NameResolver} from "ens-contracts/resolvers/profiles/NameResolver.sol";
 
-import {BASE_REVERSE_NODE} from "src/util/Constants.sol";
 import {UpgradeableRegistrarController} from "src/L2/UpgradeableRegistrarController.sol";
 
 import {BaseSepoliaForkBase} from "./BaseSepoliaForkBase.t.sol";
+import {BaseSepolia as BaseSepoliaConstants} from "./BaseSepoliaConstants.sol";
 
 contract ENSIP19NewFlows is BaseSepoliaForkBase {
     uint256 internal constant BASE_SEPOLIA_COINTYPE = 2147568180;
@@ -77,7 +77,7 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
         vm.prank(user);
         upgradeableController.register{value: price}(req);
 
-        bytes32 baseRevNode = _baseReverseNode(user, BASE_REVERSE_NODE);
+        bytes32 baseRevNode = _baseReverseNode(user, BaseSepoliaConstants.BASE_SEPOLIA_REVERSE_NODE);
         string memory storedName = NameResolver(LEGACY_L2_RESOLVER).name(baseRevNode);
         string memory expectedFull = string.concat(name, legacyController.rootName());
         assertEq(keccak256(bytes(storedName)), keccak256(bytes(expectedFull)), "legacy reverse name not set");
@@ -102,7 +102,7 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
         vm.prank(user);
         upgradeableController.setReverseRecord(name, expiry, coinTypes, signature);
 
-        bytes32 baseRevNode = _baseReverseNode(user, BASE_REVERSE_NODE);
+        bytes32 baseRevNode = _baseReverseNode(user, BaseSepoliaConstants.BASE_SEPOLIA_REVERSE_NODE);
         string memory storedLegacy = NameResolver(LEGACY_L2_RESOLVER).name(baseRevNode);
         assertEq(keccak256(bytes(storedLegacy)), keccak256(bytes(fullName)), "legacy reverse not set");
 
