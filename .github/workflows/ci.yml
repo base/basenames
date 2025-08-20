@@ -37,6 +37,6 @@ jobs:
       - name: Test
         env:
           BASE_SEPOLIA_RPC_URL: ${{ env.BASE_SEPOLIA_RPC_URL }}
-        run: forge test -vvv
+        run: forge test -vvv --ffi
 
 
