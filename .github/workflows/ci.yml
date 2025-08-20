@@ -1,0 +1,36 @@
+name: ci
+permissions:
+  contents: read
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      BASE_SEPOLIA_RPC_URL: "https://sepolia.base.org" 
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Cache lib
+        uses: actions/cache@v4
+        with:
+          path: lib
+          key: lib-${{ runner.os }}-${{ hashFiles('**/foundry.toml', '**/.gitmodules') }}
+
+      - name: Install deps
+        run: forge install --no-git --no-commit
+
+      - name: Build
+        run: forge build --sizes
+
+      - name: Test
+        run: forge test -vvv
+
+
