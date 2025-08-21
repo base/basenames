@@ -48,8 +48,14 @@ Basenames are a core onchain building block that enables anyone to establish the
 | RegistrarController | [0x49ae3cc2e3aa768b1e5654f5d3c6002144a59581](https://sepolia.basescan.org/address/0x49ae3cc2e3aa768b1e5654f5d3c6002144a59581) |
 | Launch Price Oracle | [0x2afF926546f5fbe3E10315CC9C0827AF1A167aC8](https://sepolia.basescan.org/address/0x2afF926546f5fbe3E10315CC9C0827AF1A167aC8) |
 | Price Oracle | [0x2b73408052825e17e0fe464f92de85e8c7723231](https://sepolia.basescan.org/address/0x2b73408052825e17e0fe464f92de85e8c7723231) | 
-| ReverseRegistrar | [0xa0A8401ECF248a9375a0a71C4dedc263dA18dCd7](https://sepolia.basescan.org/address/0xa0A8401ECF248a9375a0a71C4dedc263dA18dCd7) | 
+| ReverseRegistrar | [0x876eF94ce0773052a2f81921E70FF25a5e76841f](https://sepolia.basescan.org/address/0x876eF94ce0773052a2f81921E70FF25a5e76841f) | 
 | L2Resolver | [0x6533C94869D28fAA8dF77cc63f9e2b2D6Cf77eBA](https://sepolia.basescan.org/address/0x6533C94869D28fAA8dF77cc63f9e2b2D6Cf77eBA) | 
+| MigrationController | [0xE8A87034a06425476F2bD6fD14EA038332Cc5e10](https://sepolia.basescan.org/address/0xE8A87034a06425476F2bD6fD14EA038332Cc5e10) |
+| UpgradeableRegistrarController (Implementation) | [0xb53e99F4a96dce67E772038a32aBd1131E216770](https://sepolia.basescan.org/address/0xb53e99F4a96dce67E772038a32aBd1131E216770) |
+| UpgradeableRegistrarController (Proxy) | [0x82c858CDF64b3D893Fe54962680edFDDC37e94C8](https://sepolia.basescan.org/address/0x82c858CDF64b3D893Fe54962680edFDDC37e94C8) |
+| UpgradeableL2Resolver (Implementation) | [0xC014B9c02b0EDeA17255Ce019e6ab6c24E4AD073](https://sepolia.basescan.org/address/0xC014B9c02b0EDeA17255Ce019e6ab6c24E4AD073) |
+| UpgradeableL2Resolver (Proxy) | [0x85C87e548091f204C2d0350b39ce1874f02197c6](https://sepolia.basescan.org/address/0x85C87e548091f204C2d0350b39ce1874f02197c6) |
+| ProxyAdmin | [0xE6F8309b75E73ace9d2b73531880126D883ae904](https://sepolia.basescan.org/address/0xE6F8309b75E73ace9d2b73531880126D883ae904) |
 
 ## Functional Diagram
 
