@@ -32,6 +32,12 @@ Basenames are a core onchain building block that enables anyone to establish the
 | Price Oracle | [0x508CFE43aa84b8048cB6d39037cE0dc96d8aDc75](https://basescan.org/address/0x508CFE43aa84b8048cB6d39037cE0dc96d8aDc75) | 
 | ReverseRegistrar | [0x79ea96012eea67a83431f1701b3dff7e37f9e282](https://basescan.org/address/0x79ea96012eea67a83431f1701b3dff7e37f9e282) | 
 | L2Resolver | [0xC6d566A56A1aFf6508b41f6c90ff131615583BCD](https://basescan.org/address/0xC6d566A56A1aFf6508b41f6c90ff131615583BCD) | 
+| MigrationController | [0x8d5ef54f900c82da119B4a7F960A92F3Fa8daB43](https://basescan.org/address/0x8d5ef54f900c82da119B4a7F960A92F3Fa8daB43) |
+| UpgradeableRegistrarController (Implementation) | [0x9ad14968093C5E8C2A8CC86f6868CFEE8C659717](https://basescan.org/address/0x9ad14968093C5E8C2A8CC86f6868CFEE8C659717) |
+| UpgradeableRegistrarController (Proxy) | [0xa7d2607c6BD39Ae9521e514026CBB078405Ab322](https://basescan.org/address/0xa7d2607c6BD39Ae9521e514026CBB078405Ab322) |
+| UpgradeableL2Resolver (Implementation) | [0xf74b949f2105178eEEd4Ef35a131715E967337ab](https://basescan.org/address/0xf74b949f2105178eEEd4Ef35a131715E967337ab) |
+| UpgradeableL2Resolver (Proxy) | [0x426fA03fB86E510d0Dd9F70335Cf102a98b10875](https://basescan.org/address/0x426fA03fB86E510d0Dd9F70335Cf102a98b10875) |
+| ProxyAdmin | [0x6c8E23DaCCc002d2Bca7608EC0351E434E74d5a8](https://basescan.org/address/0x6c8E23DaCCc002d2Bca7608EC0351E434E74d5a8) |
 
 #### Sepolia
 
