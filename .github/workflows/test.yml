@@ -8,6 +8,7 @@ on:
 env:
   FOUNDRY_PROFILE: ci
   BASE_SEPOLIA_RPC_URL: "https://sepolia.base.org"
+  BASE_MAINNET_RPC_URL: "https://mainnet.base.org"
 
 jobs:
   forge-test:
