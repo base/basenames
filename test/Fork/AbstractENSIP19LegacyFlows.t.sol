@@ -7,10 +7,9 @@ import {NameResolver} from "ens-contracts/resolvers/profiles/NameResolver.sol";
 import {IReverseRegistrar} from "src/L2/interface/IReverseRegistrar.sol";
 import {RegistrarController} from "src/L2/RegistrarController.sol";
 
-import {BaseSepoliaForkBase} from "./BaseSepoliaForkBase.t.sol";
-import {BaseSepolia as BaseSepoliaConstants} from "./BaseSepoliaConstants.sol";
+import {AbstractForkSuite} from "./AbstractForkSuite.t.sol";
 
-contract ENSIP19LegacyFlows is BaseSepoliaForkBase {
+abstract contract AbstractENSIP19LegacyFlows is AbstractForkSuite {
     function test_register_name_on_legacy() public {
         string memory name = "forkleg";
         bytes32 root = legacyController.rootNode();
@@ -59,12 +58,13 @@ contract ENSIP19LegacyFlows is BaseSepoliaForkBase {
         vm.prank(user);
         legacyController.register{value: price}(req);
 
-        // Set primary via legacy ReverseRegistrar directly
-        vm.prank(user);
+        // Set primary via legacy ReverseRegistrar directly (persist prank across nested calls)
+        vm.startPrank(user);
         IReverseRegistrar(LEGACY_REVERSE_REGISTRAR).setNameForAddr(user, user, LEGACY_L2_RESOLVER, _fullName(name));
+        vm.stopPrank();
 
         // Validate reverse record was set on the legacy resolver
-        bytes32 baseRevNode = _baseReverseNode(user, BaseSepoliaConstants.BASE_SEPOLIA_REVERSE_NODE);
+        bytes32 baseRevNode = _baseReverseNode(user, baseReverseParentNode());
         string memory storedName = NameResolver(LEGACY_L2_RESOLVER).name(baseRevNode);
         assertEq(keccak256(bytes(storedName)), keccak256(bytes(_fullName(name))), "reverse name not set");
 
@@ -93,9 +93,9 @@ contract ENSIP19LegacyFlows is BaseSepoliaForkBase {
         legacyController.register{value: price}(req);
 
         // Assert reverse was set by the controller calling the ReverseRegistrar
-        bytes32 baseRevNode = _baseReverseNode(user, BaseSepoliaConstants.BASE_SEPOLIA_REVERSE_NODE);
+        bytes32 baseRevNode = _baseReverseNode(user, baseReverseParentNode());
         string memory storedName = NameResolver(LEGACY_L2_RESOLVER).name(baseRevNode);
-        string memory expectedFull = string.concat(name, legacyController.rootName());
+        string memory expectedFull = _fullName(name);
         assertEq(keccak256(bytes(storedName)), keccak256(bytes(expectedFull)), "reverse name not set by controller");
 
         // Also verify forward resolver/owner as a sanity check
