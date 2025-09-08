@@ -45,6 +45,7 @@ auto_detect_remappings = false
 [rpc_endpoints]
 sepolia="${SEPOLIA_RPC_URL}"
 base-sepolia="${BASE_SEPOLIA_RPC_URL}"
+base-mainnet="${BASE_MAINNET_RPC_URL}"
 
 [etherscan]
 sepolia={url = "https://api-sepolia.etherscan.io/api", key = "${ETHERSCAN_API_KEY}"}

@@ -7,12 +7,9 @@ import {NameResolver} from "ens-contracts/resolvers/profiles/NameResolver.sol";
 
 import {UpgradeableRegistrarController} from "src/L2/UpgradeableRegistrarController.sol";
 
-import {BaseSepoliaForkBase} from "./BaseSepoliaForkBase.t.sol";
-import {BaseSepolia as BaseSepoliaConstants} from "./BaseSepoliaConstants.sol";
+import {AbstractForkSuite} from "./AbstractForkSuite.t.sol";
 
-contract ENSIP19NewFlows is BaseSepoliaForkBase {
-    uint256 internal constant BASE_SEPOLIA_COINTYPE = 2147568180;
-
+abstract contract AbstractENSIP19NewFlows is AbstractForkSuite {
     function test_register_on_new_sets_forward_records_ensip11() public {
         string memory name = "forknewfwd";
         bytes32 root = legacyController.rootNode();
@@ -24,7 +21,7 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
         data[0] = abi.encodeWithSelector(setAddrDefaultSel, node, user);
         // setAddr(bytes32,uint256,bytes)
         bytes4 setAddrCointypeSel = bytes4(keccak256("setAddr(bytes32,uint256,bytes)"));
-        data[1] = abi.encodeWithSelector(setAddrCointypeSel, node, BASE_SEPOLIA_COINTYPE, _addressToBytes(user));
+        data[1] = abi.encodeWithSelector(setAddrCointypeSel, node, baseCoinType(), _addressToBytes(user));
 
         UpgradeableRegistrarController.RegisterRequest memory req = UpgradeableRegistrarController.RegisterRequest({
             name: name,
@@ -49,7 +46,7 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
         assertEq(resolverNow, UPGRADEABLE_L2_RESOLVER_PROXY, "resolver should be upgradeable L2 resolver");
         assertEq(ownerNow, user, "owner should be user");
 
-        bytes memory coinAddr = AddrResolver(UPGRADEABLE_L2_RESOLVER_PROXY).addr(node, BASE_SEPOLIA_COINTYPE);
+        bytes memory coinAddr = AddrResolver(UPGRADEABLE_L2_RESOLVER_PROXY).addr(node, baseCoinType());
         assertEq(coinAddr.length, 20, "ensip-11 addr length");
         assertEq(address(bytes20(coinAddr)), user, "ensip-11 addr matches user");
         assertEq(AddrResolver(UPGRADEABLE_L2_RESOLVER_PROXY).addr(node), user, "default addr matches user");
@@ -77,7 +74,7 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
         vm.prank(user);
         upgradeableController.register{value: price}(req);
 
-        bytes32 baseRevNode = _baseReverseNode(user, BaseSepoliaConstants.BASE_SEPOLIA_REVERSE_NODE);
+        bytes32 baseRevNode = _baseReverseNode(user, baseReverseParentNode());
         string memory storedName = NameResolver(LEGACY_L2_RESOLVER).name(baseRevNode);
         string memory expectedFull = string.concat(name, legacyController.rootName());
         assertEq(keccak256(bytes(storedName)), keccak256(bytes(expectedFull)), "legacy reverse name not set");
@@ -93,27 +90,20 @@ contract ENSIP19NewFlows is BaseSepoliaForkBase {
 
     function test_set_primary_on_new_writes_both_paths_with_signature() public {
         string memory name = "forknewprim";
-        string memory fullName = string.concat(name, legacyController.rootName());
+        string memory fullName = _fullName(name);
         uint256[] memory coinTypes = new uint256[](1);
-        coinTypes[0] = BASE_SEPOLIA_COINTYPE;
+        coinTypes[0] = baseCoinType();
         uint256 expiry = block.timestamp + 30 minutes;
         bytes memory signature = _buildL2ReverseSignature(fullName, coinTypes, expiry);
 
         vm.prank(user);
         upgradeableController.setReverseRecord(name, expiry, coinTypes, signature);
 
-        bytes32 baseRevNode = _baseReverseNode(user, BaseSepoliaConstants.BASE_SEPOLIA_REVERSE_NODE);
+        bytes32 baseRevNode = _baseReverseNode(user, baseReverseParentNode());
         string memory storedLegacy = NameResolver(LEGACY_L2_RESOLVER).name(baseRevNode);
         assertEq(keccak256(bytes(storedLegacy)), keccak256(bytes(fullName)), "legacy reverse not set");
 
         string memory l2Name = l2ReverseRegistrar.nameForAddr(user);
         assertEq(keccak256(bytes(l2Name)), keccak256(bytes(fullName)), "l2 reverse not set");
-    }
-
-    function _addressToBytes(address a) internal pure returns (bytes memory b) {
-        b = new bytes(20);
-        assembly {
-            mstore(add(b, 32), mul(a, exp(256, 12)))
-        }
     }
 }
