@@ -4,7 +4,7 @@ pragma solidity ^0.8.23;
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
 
-import {IDiscountValidator} from "src/L2/interface/IDiscountValidator.sol";
+import {DiscountValidator} from "./DiscountValidator.sol";
 
 /// @title Discount Validator for: Talent Protocol Builder Score
 ///
@@ -12,7 +12,7 @@ import {IDiscountValidator} from "src/L2/interface/IDiscountValidator.sol";
 ///         Discounts are granted based on the claimer having some score higher than this contract's `threshold`.
 ///
 /// @author Coinbase (https://github.com/base-org/usernames)
-contract TalentProtocolDiscountValidator is IDiscountValidator, Ownable {
+contract TalentProtocolDiscountValidator is DiscountValidator, Ownable {
     /// @notice Thrown when setting a critical address to the zero-address.
     error NoZeroAddress();
 
@@ -54,7 +54,7 @@ contract TalentProtocolDiscountValidator is IDiscountValidator, Ownable {
     /// @param claimer the discount claimer's address.
     ///
     /// @return `true` if the validation data provided is determined to be valid for the specified claimer, else `false`.
-    function isValidDiscountRegistration(address claimer, bytes calldata) external view returns (bool) {
+    function isValidDiscountRegistration(address claimer, bytes calldata) public view override returns (bool) {
         return (talentProtocol.getScoreByAddress(claimer) >= threshold);
     }
 }
