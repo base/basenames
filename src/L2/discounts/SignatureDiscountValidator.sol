@@ -1,0 +1,46 @@
+//SPDX-License-Identifier: MIT
+pragma solidity ^0.8.23;
+
+import {Ownable} from "solady/auth/Ownable.sol";
+
+import {IDiscountValidator} from "src/L2/interface/IDiscountValidator.sol";
+import {SybilResistanceVerifier} from "src/lib/SybilResistanceVerifier.sol";
+
+/// @title Discount Validator for: Signature Discount Validator
+///
+/// @notice Implements a simple signature validatio schema which performs signature verification to valiate
+///         signatures were generated from the Base Signer Service.
+///
+/// @author Coinbase (https://github.com/base-org/basenames)
+contract SignatureDiscountValidator is Ownable, IDiscountValidator {
+    /// @dev The base signer service signer address.
+    address signer;
+
+    /// @notice constructor
+    ///
+    /// @param owner_ The permissioned `owner` in the `Ownable` context.
+    /// @param signer_ The off-chain signer of the base signers service.
+    constructor(address owner_, address signer_) {
+        _initializeOwner(owner_);
+        signer = signer_;
+    }
+
+    /// @notice Allows the owner to update the expected signer.
+    ///
+    /// @param signer_ The address of the new signer.
+    function setSigner(address signer_) external onlyOwner {
+        signer = signer_;
+    }
+
+    /// @notice Required implementation for compatibility with IDiscountValidator.
+    ///
+    /// @dev The data must be encoded as `abi.encode(discountClaimerAddress, expiry, signature_bytes)`.
+    ///
+    /// @param claimer the discount claimer's address.
+    /// @param validationData opaque bytes for performing the validation.
+    ///
+    /// @return `true` if the validation data provided is determined to be valid for the specified claimer, else `false`.
+    function isValidDiscountRegistration(address claimer, bytes calldata validationData) external view returns (bool) {
+        return SybilResistanceVerifier.verifySignature(signer, claimer, validationData);
+    }
+}
