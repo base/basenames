@@ -5,8 +5,8 @@ import {AbstractForkSuite} from "./AbstractForkSuite.t.sol";
 import {BaseSepolia as C} from "./BaseSepoliaConstants.sol";
 
 abstract contract BaseSepoliaConfig is AbstractForkSuite {
-    function forkAlias() internal pure override returns (string memory) {
-        return "base-sepolia";
+    function forkAlias() internal pure override returns (string memory, uint256) {
+        return ("base-sepolia", 30_967_867); // Last ENSIP-19 setup config was run here: https://sepolia.basescan.org/block/30967866. Incremement one block.
     }
 
     function registry() internal pure override returns (address) {

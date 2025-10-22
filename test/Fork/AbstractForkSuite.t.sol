@@ -14,7 +14,7 @@ import {BASE_ETH_NODE} from "src/util/Constants.sol";
 
 abstract contract AbstractForkSuite is Test {
     // Network configuration hooks
-    function forkAlias() internal pure virtual returns (string memory);
+    function forkAlias() internal pure virtual returns (string memory, uint256);
 
     function registry() internal pure virtual returns (address);
     function baseRegistrar() internal pure virtual returns (address);
@@ -55,7 +55,8 @@ abstract contract AbstractForkSuite is Test {
     address internal MIGRATION_CONTROLLER;
 
     function setUp() public virtual {
-        vm.createSelectFork(forkAlias());
+        (string memory forkUrl, uint256 blockNumber) = forkAlias();
+        vm.createSelectFork(forkUrl, blockNumber);
 
         // Bind constants
         REGISTRY = registry();
