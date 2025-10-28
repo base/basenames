@@ -48,10 +48,12 @@ jobs:
         id: changed-files
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            # Fetch only the base commit we need
-            git fetch origin ${{ github.event.pull_request.base.sha }} --depth=1
-            BASE_COMMIT=${{ github.event.pull_request.base.sha }}
-            HEAD_COMMIT=${{ github.event.pull_request.head.sha }}
+            git fetch origin ${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }} --depth=50
+            BASE_COMMIT=$(git merge-base HEAD origin/${{ github.event.pull_request.base.ref }})
+            HEAD_COMMIT=HEAD
+            echo "Base branch: ${{ github.event.pull_request.base.ref }}"
+            echo "Base commit (merge-base): $BASE_COMMIT"
+            echo "Head commit: $HEAD_COMMIT"
             CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR $BASE_COMMIT..$HEAD_COMMIT | grep '\.sol$' || true)
           else
             CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR HEAD^..HEAD | grep '\.sol$' || true)
