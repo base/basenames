@@ -61,5 +61,15 @@ jobs:
       - name: Check formatting on changed files
         if: steps.changed-files.outputs.files != ''
         run: |
-          echo "${{ steps.changed-files.outputs.files }}" | xargs forge fmt --check
+          # Convert the file list to an array and pass each file individually
+          FILES="${{ steps.changed-files.outputs.files }}"
+          if [ -n "$FILES" ]; then
+            echo "Checking formatting for files: $FILES"
+            echo "$FILES" | while IFS= read -r file; do
+              if [ -n "$file" ]; then
+                echo "Checking: $file"
+                forge fmt --check "$file"
+              fi
+            done
+          fi
         id: fmt
