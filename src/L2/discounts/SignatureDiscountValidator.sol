@@ -19,7 +19,7 @@ contract SignatureDiscountValidator is Ownable, IDiscountValidator {
     /// @notice constructor
     ///
     /// @param owner_ The permissioned `owner` in the `Ownable` context.
-    /// @param signer_ The off-chain signer of the base signers service.
+    /// @param signer_ The off-chain signer of the Base Signer Service.
     constructor(address owner_, address signer_) {
         _initializeOwner(owner_);
         signer = signer_;
