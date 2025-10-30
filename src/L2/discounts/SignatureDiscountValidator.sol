@@ -8,7 +8,7 @@ import {SybilResistanceVerifier} from "src/lib/SybilResistanceVerifier.sol";
 
 /// @title Discount Validator for: Signature Discount Validator
 ///
-/// @notice Implements a simple signature validatio schema which performs signature verification to valiate
+/// @notice Implements a simple signature validation schema which performs signature verification to validate
 ///         signatures were generated from the Base Signer Service.
 ///
 /// @author Coinbase (https://github.com/base-org/basenames)
