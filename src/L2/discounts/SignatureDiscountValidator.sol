@@ -13,7 +13,7 @@ import {SybilResistanceVerifier} from "src/lib/SybilResistanceVerifier.sol";
 ///
 /// @author Coinbase (https://github.com/base-org/basenames)
 contract SignatureDiscountValidator is Ownable, IDiscountValidator {
-    /// @dev The base signer service signer address.
+    /// @dev The Base Signer Service signer address.
     address signer;
 
     /// @notice constructor
