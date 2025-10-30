@@ -12,9 +12,9 @@ contract SetSigner is SignatureDiscountValidatorBase {
         validator.setSigner(caller);
     }
 
-    function test_allowsTheOwner_toUpdateTheSigner() public {
+    function test_allowsTheOwner_toUpdateTheSigner(address newSigner) public {
+        vm.assume(newSigner != signer && newSigner != address(0));
         vm.prank(owner);
-        address newSigner = makeAddr("new");
         validator.setSigner(newSigner);
     }
 }

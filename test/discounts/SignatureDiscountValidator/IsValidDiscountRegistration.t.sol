@@ -5,8 +5,8 @@ import {SignatureDiscountValidatorBase} from "./SignatureDiscountValidatorBase.t
 import {SybilResistanceVerifier} from "src/lib/SybilResistanceVerifier.sol";
 
 contract IsValidDiscountRegistration is SignatureDiscountValidatorBase {
-    function test_reverts_whenTheValidationData_claimerAddressMismatch() public {
-        address notUser = makeAddr("anon");
+    function test_reverts_whenTheValidationData_claimerAddressMismatch(address notUser) public {
+        vm.assume(notUser != user && notUser != address(0));
         bytes memory validationData = _getDefaultValidationData();
         (, uint64 expires, bytes memory sig) = abi.decode(validationData, (address, uint64, bytes));
         bytes memory claimerMismatchValidationData = abi.encode(notUser, expires, sig);
