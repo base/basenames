@@ -26,10 +26,10 @@ library SignatureVerifier {
     ///        to the caller, and `sig` is the (r,s,v) encoded message signature.
     /// @return signer The address that signed this message.
     /// @return result The `result` decoded from `response`.
-    function verify(bytes calldata request, bytes calldata response) internal view returns (address, bytes memory) {
+    function verify(bytes calldata request, bytes calldata response) internal view returns (address, bytes memory), bool {
         (bytes memory result, uint64 expires, bytes memory sig) = abi.decode(response, (bytes, uint64, bytes));
         if (expires < block.timestamp) revert SignatureExpired();
         address signer = ECDSA.recover(makeSignatureHash(address(this), expires, request, result), sig);
-        return (signer, result);
+        return (signer, result, true);
     }
 }
