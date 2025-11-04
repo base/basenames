@@ -16,11 +16,16 @@ contract SignatureDiscountValidator is Ownable, IDiscountValidator {
     /// @dev The base signer service signer address.
     address signer;
 
+    /// @dev Thrown when setting the zero address as `owner` or `signer`.
+    error NoZeroAddress();
+
     /// @notice constructor
     ///
     /// @param owner_ The permissioned `owner` in the `Ownable` context.
     /// @param signer_ The off-chain signer of the Base Signer Service.
     constructor(address owner_, address signer_) {
+        if (owner_ == address(0)) revert NoZeroAddress();
+        if (signer_ == address(0)) revert NoZeroAddress();
         _initializeOwner(owner_);
         signer = signer_;
     }
@@ -29,6 +34,7 @@ contract SignatureDiscountValidator is Ownable, IDiscountValidator {
     ///
     /// @param signer_ The address of the new signer.
     function setSigner(address signer_) external onlyOwner {
+        if (signer_ == address(0)) revert NoZeroAddress();
         signer = signer_;
     }
 

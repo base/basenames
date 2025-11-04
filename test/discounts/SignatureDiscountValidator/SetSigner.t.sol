@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
+import {SignatureDiscountValidator} from "src/L2/discounts/SignatureDiscountValidator.sol";
 import {SignatureDiscountValidatorBase} from "./SignatureDiscountValidatorBase.t.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
 
@@ -16,5 +17,11 @@ contract SetSigner is SignatureDiscountValidatorBase {
         vm.assume(newSigner != signer && newSigner != address(0));
         vm.prank(owner);
         validator.setSigner(newSigner);
+    }
+
+    function test_revertWhen_settingSignerToZeroAddress() public {
+        vm.expectRevert(SignatureDiscountValidator.NoZeroAddress.selector);
+        vm.prank(owner);
+        validator.setSigner(address(0));
     }
 }

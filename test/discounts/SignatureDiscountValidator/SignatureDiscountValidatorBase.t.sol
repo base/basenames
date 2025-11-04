@@ -29,4 +29,12 @@ contract SignatureDiscountValidatorBase is Test {
         bytes memory sig = abi.encodePacked(r, s, v);
         return abi.encode(user, expires, sig);
     }
+
+    function test_constructor() public {
+        vm.expectRevert(SignatureDiscountValidator.NoZeroAddress.selector);
+        new SignatureDiscountValidator(address(0), signer);
+
+        vm.expectRevert(SignatureDiscountValidator.NoZeroAddress.selector);
+        new SignatureDiscountValidator(owner, address(0));
+    }
 }
