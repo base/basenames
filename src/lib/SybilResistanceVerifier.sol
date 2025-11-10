@@ -16,7 +16,7 @@ library SybilResistanceVerifier {
     /// @param claimer The address that is calling the discounted registration.
     error ClaimerAddressMismatch(address expectedClaimer, address claimer);
 
-    /// @notice Thrown when the signature expiry date >= block.timestamp.
+    /// @notice Thrown when the signature expiry date < block.timestamp.
     error SignatureExpired();
 
     /// @notice  Generates a hash for signing/verifying.

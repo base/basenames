@@ -18,6 +18,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -44,7 +45,42 @@ jobs:
           forge test -vvv --ffi
         id: test
 
-      - name: Check formatting
+      - name: Get changed Solidity files
+        id: changed-files
         run: |
-          forge fmt --check
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE_COMMIT=${{ github.event.pull_request.base.sha }}
+            HEAD_COMMIT=${{ github.event.pull_request.head.sha }}
+            CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR $BASE_COMMIT..$HEAD_COMMIT | grep '\.sol$' || true)
+          else
+            CHANGED_FILES=$(git diff --name-only --diff-filter=ACMR HEAD^..HEAD | grep '\.sol$' || true)
+          fi
+          
+          # Store files in a way that GitHub Actions can handle properly
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "has_files=true" >> $GITHUB_OUTPUT
+            # Save files to a temporary file for the next step
+            echo "$CHANGED_FILES" > /tmp/changed_files.txt
+            echo "Changed Solidity files:"
+            echo "$CHANGED_FILES"
+          else
+            echo "has_files=false" >> $GITHUB_OUTPUT
+            echo "No Solidity files changed"
+          fi
+
+      - name: Check formatting on changed files
+        if: steps.changed-files.outputs.has_files == 'true'
+        run: |
+          # Read files from the temporary file created in the previous step
+          if [ -f /tmp/changed_files.txt ]; then
+            echo "Checking formatting for changed Solidity files..."
+            while IFS= read -r file; do
+              if [ -n "$file" ]; then
+                echo "Checking: $file"
+                forge fmt --check "$file"
+              fi
+            done < /tmp/changed_files.txt
+          else
+            echo "No changed files found"
+          fi
         id: fmt
