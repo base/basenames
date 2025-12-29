@@ -146,3 +146,15 @@ $ forge --help
 $ anvil --help
 $ cast --help
 ```
+### CLI Resolution Example
+
+You can resolve a Basename directly from the CLI using [Foundry](https://getfoundry.sh/).
+
+**Resolve a Name to an Address (Base Mainnet):**
+
+```bash
+# Query the L2 Resolver for 'jesse.base.eth'
+cast call 0xC6d566A56A1aFf6508b41f6c90ff131615583BCD \
+  "addr(bytes32)(address)" \
+  $(cast namehash "jesse.base.eth") \
+  --rpc-url [https://mainnet.base.org](https://mainnet.base.org)
