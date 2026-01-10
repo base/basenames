@@ -19,7 +19,8 @@ abstract contract ResolverBase is ERC165, IVersionableResolver {
 
     /// @notice EIP-7201 storage location.
     // keccak256(abi.encode(uint256(keccak256("resolver.base.storage")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant RESOLVER_BASE_LOCATION = 0x421bc1b234e222da5ef3c41832b689b450ae239e8b18cf3c05f5329ae7d99700;
+    bytes32 private constant RESOLVER_BASE_LOCATION =
+        0x421bc1b234e222da5ef3c41832b689b450ae239e8b18cf3c05f5329ae7d99700;
 
     /// @notice Decorator for record-write authorization checks.
     modifier authorized(bytes32 node) {

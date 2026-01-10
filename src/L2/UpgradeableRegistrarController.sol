@@ -468,11 +468,8 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     ///
     /// @return price The `Price` tuple containing the base and premium prices respectively, denominated in wei.
     function rentPrice(string memory name, uint256 duration) public view returns (IPriceOracle.Price memory price) {
-        price = _getURCStorage().prices.price({
-            name: name,
-            expires: _getExpiry(uint256(_getLabelFromName(name))),
-            duration: duration
-        });
+        price = _getURCStorage().prices
+            .price({name: name, expires: _getExpiry(uint256(_getLabelFromName(name))), duration: duration});
     }
 
     /// @notice Checks the register price for a provided `name` and `duration`.
@@ -614,13 +611,10 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
     /// @param request The `RegisterRequest` struct containing the details for the registration.
     function _register(RegisterRequest calldata request) internal {
         bytes32 label = _getLabelFromName(request.name);
-        uint256 expires = _getURCStorage().base.registerWithRecord({
-            id: uint256(label),
-            owner: request.owner,
-            duration: request.duration,
-            resolver: request.resolver,
-            ttl: 0
-        });
+        uint256 expires = _getURCStorage().base
+            .registerWithRecord({
+                id: uint256(label), owner: request.owner, duration: request.duration, resolver: request.resolver, ttl: 0
+            });
 
         if (request.data.length > 0) {
             _setRecords(request.resolver, label, request.data);
@@ -678,9 +672,8 @@ contract UpgradeableRegistrarController is Ownable2StepUpgradeable {
         string memory fullName = string.concat(name, $.rootName);
         _setLegacyReverseRecord(fullName, msg.sender);
         if (signatureExpiry != 0 && coinTypes.length > 0 && signature.length > 0) {
-            IL2ReverseRegistrar($.l2ReverseRegistrar).setNameForAddrWithSignature(
-                msg.sender, signatureExpiry, fullName, coinTypes, signature
-            );
+            IL2ReverseRegistrar($.l2ReverseRegistrar)
+                .setNameForAddrWithSignature(msg.sender, signatureExpiry, fullName, coinTypes, signature);
         }
     }
 

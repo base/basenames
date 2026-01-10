@@ -62,8 +62,8 @@ abstract contract AddrResolver is IAddrResolver, IAddressResolver, ResolverBase 
         if (coinType == COIN_TYPE_ETH) {
             emit AddrChanged(node, address(bytes20(a)));
         }
-        _getAddrResolverStorage().versionable_addresses[_getResolverBaseStorage().recordVersions[node]][node][coinType]
-        = a;
+        _getAddrResolverStorage()
+        .versionable_addresses[_getResolverBaseStorage().recordVersions[node]][node][coinType] = a;
     }
 
     /// @notice Returns the address associated with a specified ENS `node`.

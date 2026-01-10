@@ -82,10 +82,7 @@ contract RegistrarControllerBase is Test {
 
     function _getDefaultDiscount() internal view returns (RegistrarController.DiscountDetails memory) {
         return RegistrarController.DiscountDetails({
-            active: true,
-            discountValidator: address(validator),
-            key: discountKey,
-            discount: discountAmount
+            active: true, discountValidator: address(validator), key: discountKey, discount: discountAmount
         });
     }
 

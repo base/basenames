@@ -33,8 +33,8 @@ abstract contract InterfaceResolver is IInterfaceResolver, ResolverBase {
     /// @param interfaceID The EIP-165 interface ID.
     /// @param implementer The address of a contract that implements this interface for this node.
     function setInterface(bytes32 node, bytes4 interfaceID, address implementer) external virtual authorized(node) {
-        _getInterfaceResolverStorage().versionable_interfaces[_getResolverBaseStorage().recordVersions[node]][node][interfaceID]
-        = implementer;
+        _getInterfaceResolverStorage()
+        .versionable_interfaces[_getResolverBaseStorage().recordVersions[node]][node][interfaceID] = implementer;
         emit InterfaceChanged(node, interfaceID, implementer);
     }
 
@@ -49,8 +49,8 @@ abstract contract InterfaceResolver is IInterfaceResolver, ResolverBase {
     ///
     /// @return The address that implements this interface, or address(0) if the interface is unsupported.
     function interfaceImplementer(bytes32 node, bytes4 interfaceID) external view virtual override returns (address) {
-        address implementer = _getInterfaceResolverStorage().versionable_interfaces[_getResolverBaseStorage()
-            .recordVersions[node]][node][interfaceID];
+        address implementer = _getInterfaceResolverStorage()
+        .versionable_interfaces[_getResolverBaseStorage().recordVersions[node]][node][interfaceID];
         if (implementer != address(0)) {
             return implementer;
         }

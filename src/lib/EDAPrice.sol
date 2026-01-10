@@ -5,19 +5,15 @@ import "solady/utils/FixedPointMathLib.sol";
 
 library EDAPrice {
     /// @notice returns the current price of an exponential price decay auction defined by the passed params
-
     /// @dev reverts if perPeriodDecayPercentWad >= 1e18
     /// @dev reverts if uint256 secondsInPeriod = 0
     /// @dev reverts if startPrice * multiplier overflows
     /// @dev reverts if lnWad(percentWadRemainingPerPeriod) * ratio) overflows
-
     /// @param startPrice the starting price of the auction
     /// @param secondsElapsed the seconds elapsed since auction start
     /// @param secondsInPeriod the seconds over which the price should decay perPeriodDecayPercentWad
     /// @param perPeriodDecayPercentWad the percent the price should decay during secondsInPeriod, 100% = 1e18
-
     /// @return price the current auction price
-
     function currentPrice(
         uint256 startPrice,
         uint256 secondsElapsed,

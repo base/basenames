@@ -147,11 +147,7 @@ contract ReverseRegistrar is Ownable {
     /// @param resolver The address of the resolver to set.
     ///
     /// @return The ENS node hash of the base-specific reverse record.
-    function claimForBaseAddr(address addr, address owner, address resolver)
-        public
-        authorized(addr)
-        returns (bytes32)
-    {
+    function claimForBaseAddr(address addr, address owner, address resolver) public authorized(addr) returns (bytes32) {
         bytes32 labelHash = Sha3.hexAddress(addr);
         bytes32 baseReverseNode = keccak256(abi.encodePacked(reverseNode, labelHash));
         emit BaseReverseClaimed(addr, baseReverseNode);
