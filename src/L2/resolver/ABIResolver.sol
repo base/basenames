@@ -38,7 +38,7 @@ abstract contract ABIResolver is IABIResolver, ResolverBase {
         if (((contentType - 1) & contentType) != 0) revert InvalidContentType();
 
         _getABIResolverStorage().versionable_abis[_getResolverBaseStorage().recordVersions[node]][node][contentType] =
-            data;
+        data;
         emit ABIChanged(node, contentType);
     }
 

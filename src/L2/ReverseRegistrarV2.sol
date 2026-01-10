@@ -134,9 +134,8 @@ contract ReverseRegistrarV2 is Ownable {
         uint256[] memory cointypes,
         bytes memory signature
     ) external returns (bytes32) {
-        IL2ReverseRegistrar(l2ReverseRegistrar).setNameForAddrWithSignature(
-            addr, signatureExpiry, name, cointypes, signature
-        );
+        IL2ReverseRegistrar(l2ReverseRegistrar)
+            .setNameForAddrWithSignature(addr, signatureExpiry, name, cointypes, signature);
         return setNameForAddr(addr, msg.sender, defaultResolver, name);
     }
 
@@ -212,11 +211,7 @@ contract ReverseRegistrarV2 is Ownable {
     /// @param resolver The address of the resolver to set.
     ///
     /// @return The ENS node hash of the base-specific reverse record.
-    function claimForBaseAddr(address addr, address owner, address resolver)
-        public
-        authorized(addr)
-        returns (bytes32)
-    {
+    function claimForBaseAddr(address addr, address owner, address resolver) public authorized(addr) returns (bytes32) {
         bytes32 labelHash = Sha3.hexAddress(addr);
         bytes32 baseReverseNode = keccak256(abi.encodePacked(reverseNode, labelHash));
         emit BaseReverseClaimed(addr, baseReverseNode);

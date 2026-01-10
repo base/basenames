@@ -3,8 +3,9 @@ pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
 import {UpgradeableL2Resolver} from "src/L2/UpgradeableL2Resolver.sol";
-import {TransparentUpgradeableProxy} from
-    "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    TransparentUpgradeableProxy
+} from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Registry} from "src/L2/Registry.sol";
 import {ENS} from "ens-contracts/registry/ENS.sol";
 import {ETH_NODE, BASE_ETH_NODE, REVERSE_NODE} from "src/util/Constants.sol";

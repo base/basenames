@@ -5,8 +5,9 @@ import {ENS} from "ens-contracts/registry/ENS.sol";
 import {ExtendedResolver} from "ens-contracts/resolvers/profiles/ExtendedResolver.sol";
 import {IExtendedResolver} from "ens-contracts/resolvers/profiles/IExtendedResolver.sol";
 import {Multicallable} from "ens-contracts/resolvers/Multicallable.sol";
-import {Ownable2StepUpgradeable} from
-    "lib/openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
+import {
+    Ownable2StepUpgradeable
+} from "lib/openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 
 import {ABIResolver} from "./resolver/ABIResolver.sol";
 import {AddrResolver} from "./resolver/AddrResolver.sol";

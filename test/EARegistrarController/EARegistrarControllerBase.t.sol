@@ -75,19 +75,11 @@ contract EARegistrarControllerBase is Test {
 
     function _getDefaultDiscount() internal view returns (EARegistrarController.DiscountDetails memory) {
         return EARegistrarController.DiscountDetails({
-            active: true,
-            discountValidator: address(validator),
-            key: discountKey,
-            discount: discountAmount
+            active: true, discountValidator: address(validator), key: discountKey, discount: discountAmount
         });
     }
 
-    function _getDefaultRegisterRequest()
-        internal
-        view
-        virtual
-        returns (EARegistrarController.RegisterRequest memory)
-    {
+    function _getDefaultRegisterRequest() internal view virtual returns (EARegistrarController.RegisterRequest memory) {
         return EARegistrarController.RegisterRequest({
             name: name,
             owner: user,

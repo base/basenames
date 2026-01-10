@@ -101,7 +101,8 @@ abstract contract DNSResolver is IDNSRecordResolver, IDNSZoneResolver, ResolverB
         override
         returns (bytes memory)
     {
-        return _getDNSResolverStorage().versionable_records[_getResolverBaseStorage().recordVersions[node]][node][name][resource];
+        return _getDNSResolverStorage()
+        .versionable_records[_getResolverBaseStorage().recordVersions[node]][node][name][resource];
     }
 
     /// @notice Check if a given node has records.
@@ -111,10 +112,8 @@ abstract contract DNSResolver is IDNSRecordResolver, IDNSZoneResolver, ResolverB
     ///
     /// @return `True` if records are stored for this node + name, else `False`.
     function hasDNSRecords(bytes32 node, bytes32 name) external view virtual returns (bool) {
-        return (
-            _getDNSResolverStorage().versionable_nameEntriesCount[_getResolverBaseStorage().recordVersions[node]][node][name]
-                != 0
-        );
+        return (_getDNSResolverStorage()
+                .versionable_nameEntriesCount[_getResolverBaseStorage().recordVersions[node]][node][name] != 0);
     }
 
     /// @notice Sets the hash for the zone.

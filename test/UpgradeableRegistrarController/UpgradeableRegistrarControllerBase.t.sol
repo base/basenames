@@ -6,8 +6,9 @@ import {BaseRegistrar} from "src/L2/BaseRegistrar.sol";
 import {ENS} from "ens-contracts/registry/ENS.sol";
 import {IPriceOracle} from "src/L2/interface/IPriceOracle.sol";
 import {IReverseRegistrar} from "src/L2/interface/IReverseRegistrar.sol";
-import {TransparentUpgradeableProxy} from
-    "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    TransparentUpgradeableProxy
+} from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Registry} from "src/L2/Registry.sol";
 import {UpgradeableRegistrarController} from "src/L2/UpgradeableRegistrarController.sol";
 
@@ -93,10 +94,7 @@ contract UpgradeableRegistrarControllerBase is Test {
 
     function _getDefaultDiscount() internal view returns (UpgradeableRegistrarController.DiscountDetails memory) {
         return UpgradeableRegistrarController.DiscountDetails({
-            active: true,
-            discountValidator: address(validator),
-            key: discountKey,
-            discount: discountAmount
+            active: true, discountValidator: address(validator), key: discountKey, discount: discountAmount
         });
     }
 
