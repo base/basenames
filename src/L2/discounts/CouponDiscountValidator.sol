@@ -4,14 +4,14 @@ pragma solidity ^0.8.23;
 import {ECDSA} from "solady/utils/ECDSA.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
 
-import {IDiscountValidator} from "src/L2/interface/IDiscountValidator.sol";
+import {DiscountValidator} from "./DiscountValidator.sol";
 
 /// @title Discount Validator for: Coupons
 ///
 /// @notice Implements a signature-based discount validation on unique coupon codes.
 ///
 /// @author Coinbase (https://github.com/base-org/usernames)
-contract CouponDiscountValidator is Ownable, IDiscountValidator {
+contract CouponDiscountValidator is Ownable, DiscountValidator {
     /// @notice Thrown when setting a critical address to the zero-address.
     error NoZeroAddress();
 
@@ -46,7 +46,7 @@ contract CouponDiscountValidator is Ownable, IDiscountValidator {
     /// @param validationData opaque bytes for performing the validation.
     ///
     /// @return `true` if the validation data provided is determined to be valid for the specified claimer, else `false`.
-    function isValidDiscountRegistration(address claimer, bytes calldata validationData) external view returns (bool) {
+    function isValidDiscountRegistration(address claimer, bytes calldata validationData) public view override returns (bool) {
         (uint64 expiry, bytes32 uuid, bytes memory sig) = abi.decode(validationData, (uint64, bytes32, bytes));
         if (expiry < block.timestamp) revert SignatureExpired();
 

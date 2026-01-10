@@ -4,14 +4,14 @@ pragma solidity ^0.8.23;
 import {MerkleProofLib} from "lib/solady/src/utils/MerkleProofLib.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
 
-import {IDiscountValidator} from "src/L2/interface/IDiscountValidator.sol";
+import {DiscountValidator} from "./DiscountValidator.sol";
 
 /// @title Discount Validator for: cb.id
 ///
 /// @notice Implements a simple Merkle Proof validator checking that the claimant is in the stored merkle tree.
 ///
 /// @author Coinbase
-contract CBIdDiscountValidator is Ownable, IDiscountValidator {
+contract CBIdDiscountValidator is Ownable, DiscountValidator {
     /// @dev merkle tree root
     bytes32 public root;
 
@@ -35,7 +35,7 @@ contract CBIdDiscountValidator is Ownable, IDiscountValidator {
     /// @param validationData opaque bytes for performing the validation.
     ///
     /// @return `true` if the validation data provided is determined to be valid for the specified claimer, else `false`.
-    function isValidDiscountRegistration(address claimer, bytes calldata validationData) external view returns (bool) {
+    function isValidDiscountRegistration(address claimer, bytes calldata validationData) public view override returns (bool) {
         (bytes32[] memory proof) = abi.decode(validationData, (bytes32[]));
         return MerkleProofLib.verify(proof, root, keccak256(abi.encodePacked(claimer)));
     }

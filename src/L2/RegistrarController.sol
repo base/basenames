@@ -9,7 +9,7 @@ import {StringUtils} from "ens-contracts/ethregistrar/StringUtils.sol";
 
 import {BASE_ETH_NODE, GRACE_PERIOD} from "src/util/Constants.sol";
 import {BaseRegistrar} from "./BaseRegistrar.sol";
-import {IDiscountValidator} from "./interface/IDiscountValidator.sol";
+import {DiscountValidator} from "./discounts/DiscountValidator.sol";
 import {IPriceOracle} from "./interface/IPriceOracle.sol";
 import {L2Resolver} from "./L2Resolver.sol";
 import {IReverseRegistrar} from "./interface/IReverseRegistrar.sol";
@@ -132,12 +132,6 @@ contract RegistrarController is Ownable {
     /// @notice Thrown when the payment received is less than the price.
     error InsufficientValue();
 
-    /// @notice Thrown when the specified discount's validator does not accept the discount for the sender.
-    ///
-    /// @param key The discount being accessed.
-    /// @param data The associated `validationData`.
-    error InvalidDiscount(bytes32 key, bytes data);
-
     /// @notice Thrown when the discount amount is 0.
     ///
     /// @param key The discount being set.
@@ -232,25 +226,11 @@ contract RegistrarController is Ownable {
         _;
     }
 
-    /// @notice Decorator for validating discounted registrations.
+    /// @notice Decorator for validating a user for discounted registration.
     ///
-    /// @dev Validates that:
-    ///     1. That the registrant has not already registered with a discount
-    ///     2. That the discount is `active`
-    ///     3. That the associated `discountValidator` returns true when `isValidDiscountRegistration` is called.
-    ///
-    /// @param discountKey The uuid of the discount.
-    /// @param validationData The associated validation data for this discount registration.
-    modifier validDiscount(bytes32 discountKey, bytes calldata validationData) {
+    /// @dev Validates that that the registrant has not already registered with a discount
+    modifier discountAvailable() {
         if (discountedRegistrants[msg.sender]) revert AlreadyRegisteredWithDiscount(msg.sender);
-        DiscountDetails memory details = discounts[discountKey];
-
-        if (!details.active) revert InactiveDiscount(discountKey);
-
-        IDiscountValidator validator = IDiscountValidator(details.discountValidator);
-        if (!validator.isValidDiscountRegistration(msg.sender, validationData)) {
-            revert InvalidDiscount(discountKey, validationData);
-        }
         _;
     }
 
@@ -459,9 +439,11 @@ contract RegistrarController is Ownable {
     function discountedRegister(RegisterRequest calldata request, bytes32 discountKey, bytes calldata validationData)
         public
         payable
-        validDiscount(discountKey, validationData)
         validRegistration(request)
+        discountAvailable
     {
+        _validateDiscount(discountKey, validationData);
+    
         uint256 price = discountedRegisterPrice(request.name, request.duration, discountKey);
 
         _validatePayment(price);
@@ -591,6 +573,20 @@ contract RegistrarController is Ownable {
     /// @param active Whether the specified discount is active or not.
     function _updateActiveDiscounts(bytes32 key, bool active) internal {
         active ? activeDiscounts.add(key) : activeDiscounts.remove(key);
+    }
+
+    /// @notice Calls the associated discount validator with `msg.sender` and `validationData`.
+    /// 
+    /// @dev This method calls `validateDiscountRegistration` which may revert with `DiscountValidator.InvalidDiscount`.
+    ///
+    /// @param discountKey unique identifier for the discount.
+    /// @param validationData validation data required for discount. 
+    function _validateDiscount(bytes32 discountKey, bytes calldata validationData) internal {
+        DiscountDetails memory details = discounts[discountKey];
+        if(!details.active) revert InactiveDiscount(discountKey);
+
+        DiscountValidator validator = DiscountValidator(details.discountValidator);
+        validator.validateDiscountRegistration(msg.sender, validationData);
     }
 
     /// @notice Allows anyone to withdraw the eth accumulated on this contract back to the `paymentReceiver`.

@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "src/L2/interface/IDiscountValidator.sol";
+import "src/L2/discounts/DiscountValidator.sol";
 
-contract MockDiscountValidator is IDiscountValidator {
+contract MockDiscountValidator is DiscountValidator {
     bool returnValue = true;
 
-    function isValidDiscountRegistration(address, bytes calldata) external view returns (bool) {
+    function isValidDiscountRegistration(address, bytes calldata) public view override returns (bool) {
         return returnValue;
     }
 
