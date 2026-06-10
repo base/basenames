@@ -65,7 +65,7 @@ contract L2Resolver is
     /*                          ERRORS                            */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @notice Thown when msg.sender tries to set itself as an operator.
+    /// @notice Thrown when msg.sender tries to set itself as an operator.
     error CantSetSelfAsOperator();
 
     /// @notice Thrown when msg.sender tries to set itself as a delegate for one of its names.
@@ -90,7 +90,7 @@ contract L2Resolver is
     /// @param approved Whether the `delegate` is approved for the specified `node`.
     event Approved(address owner, bytes32 indexed node, address indexed delegate, bool indexed approved);
 
-    /// @notice Emitted when the owner of this contract updates the Registrar Controller addrress.
+    /// @notice Emitted when the owner of this contract updates the Registrar Controller address.
     ///
     /// @param newRegistrarController The address of the new RegistrarController contract.
     event RegistrarControllerUpdated(address indexed newRegistrarController);

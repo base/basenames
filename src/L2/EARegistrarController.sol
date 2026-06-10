@@ -40,7 +40,7 @@ contract EARegistrarController is Ownable {
         uint256 duration;
         /// @dev The address of the resolver to set for this name.
         address resolver;
-        /// @dev Multicallable data bytes for setting records in the associated resolver upon reigstration.
+        /// @dev Multicallable data bytes for setting records in the associated resolver upon registration.
         bytes[] data;
         /// @dev Bool to decide whether to set this name as the "primary" name for the `owner`.
         bool reverseRecord;
